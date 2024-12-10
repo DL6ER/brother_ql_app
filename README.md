@@ -1,12 +1,5 @@
 # Brother QL Printer Web Application
-<div align=\"center\">
-<a href=\"https://github.com/Dodoooh/brother_ql_app/releases\"><img src=\"https://img.shields.io/github/release/Dodoooh/brother_ql_app.svg\" alt=\"GitHub version\"></a>
-<a href=\"https://github.com/Dodoooh/brother_ql_app/actions/workflows/build.yml\"><img src=\"https://img.shields.io/github/actions/workflow/status/Dodoooh/brother_ql_app/build.yml\" alt=\"GitHub Actions Workflow Status\"></a>
-<a href=\"https://github.com/Dodoooh/brother_ql_app/releases/latest\"><img src=\"https://img.shields.io/github/downloads/Dodoooh/brother_ql_app/total.svg\" alt=\"GitHub downloads\"></a>
-<a href=\"https://github.com/Dodoooh/brother_ql_app/issues\"><img src=\"https://img.shields.io/github/issues/Dodoooh/brother_ql_app\" alt=\"GitHub Issues\"></a>
-<a href=\"LICENSE\"><img src=\"https://img.shields.io/github/license/Dodoooh/brother_ql_app.svg\" alt=\"License\"></a>
 ![Docker Pulls](https://img.shields.io/docker/pulls/dodoooh/brother_ql_app)
-</div>
 <br><br>
 A modern web application to control Brother QL printers, allowing text and image printing with full customization options.
 </div>
@@ -69,5 +62,3 @@ Prints text on a label.
     }
 }
   ```
-
-<div align=\"center\">Created with ❤️ by <a href=\"https://github.com/Dodoooh\">your-username</a> © 2024</div>
