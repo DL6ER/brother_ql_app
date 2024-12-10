@@ -1,5 +1,6 @@
 # Brother QL Printer Web Application
-![Docker Pulls](https://img.shields.io/docker/pulls/dodoooh/brother_ql_app)![GitHub License](https://img.shields.io/github/license/dodoooh/brother_ql_app)
+![Docker Pulls](https://img.shields.io/docker/pulls/dodoooh/brother_ql_app)
+![GitHub License](https://img.shields.io/github/license/dodoooh/brother_ql_app)
 
 <br><br>
 A modern web application to control Brother QL printers, allowing text and image printing with full customization options.
