@@ -1,4 +1,4 @@
-name: Multi-Platform CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -31,23 +31,19 @@ jobs:
             echo "IMAGE_TAG=dev" >> $GITHUB_ENV
           fi
 
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      # Build Docker Image
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/brother_ql_app:${{ env.IMAGE_TAG }} .
 
-      # Build and Push Multi-Platform Docker Image
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          tags: ${{ secrets.DOCKER_USERNAME }}/brother_ql_app:${{ env.IMAGE_TAG }}
+      # Push Docker Image to Docker Hub
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/brother_ql_app:${{ env.IMAGE_TAG }}
 
   release:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
     steps:
       # Checkout des Codes
       - name: Checkout code
