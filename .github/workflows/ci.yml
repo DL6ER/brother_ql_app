@@ -57,6 +57,7 @@ jobs:
 
       # Git-Version setzen und neuen Release-Tag erstellen
       - name: Set up Git and Release Version
+        id: set_version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -74,19 +75,20 @@ jobs:
             exit 0
           fi
 
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-
           # Neuen Tag erstellen und pushen
           git tag -a $NEW_VERSION -m "Release $NEW_VERSION"
           git push origin $NEW_VERSION
+
+          # Setze die neue Version für nachfolgende Schritte
+          echo "::set-output name=new_version::$NEW_VERSION"
 
       # GitHub Release erstellen
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ env.NEW_VERSION }}
-          release_name: "Release ${{ env.NEW_VERSION }}"
-          body: "Automated release of version ${{ env.NEW_VERSION }}."
+          tag_name: ${{ steps.set_version.outputs.new_version }}
+          release_name: "Release ${{ steps.set_version.outputs.new_version }}"
+          body: "Automated release of version ${{ steps.set_version.outputs.new_version }}."
           draft: false
           prerelease: false
         env:
