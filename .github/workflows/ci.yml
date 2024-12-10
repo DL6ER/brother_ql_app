@@ -62,10 +62,10 @@ jobs:
         run: |
           git fetch --tags
 
-          # Aktuellsten Tag ermitteln
-          VERSION=$(git describe --tags --abbrev=0)
+          # Letzten Tag finden, auch wenn er nicht auf diesem Commit ist
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
 
-          # Neue Version basierend auf dem aktuellen Tag erstellen
+          # Neue Version basierend auf dem letzten Tag erstellen
           NEW_VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++; print}')
 
           # Überprüfen, ob der neue Tag bereits existiert
