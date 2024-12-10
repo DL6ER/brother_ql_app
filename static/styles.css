@@ -1,0 +1,36 @@
+body {
+    font-size: 0.9rem;
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+h1, h2 {
+    font-size: 1.5rem;
+}
+
+.github-logo {
+    width: 24px;
+    height: 24px;
+}
+
+.header {
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    border-bottom: 1px solid var(--bs-secondary);
+}
+
+.dark-mode {
+    --bs-body-bg: #121212;
+    --bs-body-color: #e4e4e4;
+    --bs-dark: #1a1a1a;
+    --bs-light: #e4e4e4;
+    --bs-secondary: #2c2c2c;
+}
+
+.light-mode {
+    --bs-body-bg: #ffffff;
+    --bs-body-color: #000000;
+    --bs-dark: #f8f9fa;
+    --bs-light: #000000;
+    --bs-secondary: #ddd;
+}

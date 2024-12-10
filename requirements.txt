@@ -1,0 +1,4 @@
+flask
+brother-ql
+gunicorn
+pillow
