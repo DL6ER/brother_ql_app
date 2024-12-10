@@ -62,7 +62,7 @@ jobs:
         run: |
           git fetch --tags
 
-          # Letzten Tag finden, auch wenn er nicht auf diesem Commit ist
+          # Aktuellsten Tag finden
           VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
 
           # Neue Version basierend auf dem letzten Tag erstellen
