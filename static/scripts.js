@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const settingsContent = document.getElementById("settings-content");
     const saveSettingsButton = document.getElementById("save-settings");
     const generateJsonButton = document.getElementById("generate-json");
+    const copyToClipboardButton = document.getElementById("copy-to-clipboard");
+    const resultSection = document.getElementById("result-section");
+    const resultContainer = document.getElementById("result");
 
     // Initial Dark Mode setzen basierend auf Systemeinstellungen oder localStorage
     function setInitialMode() {
@@ -85,7 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Text drucken
     async function printText(event) {
         event.preventDefault(); // Verhindert das Neuladen der Seite
-        const text = document.getElementById("text").value;
+        const textArea = document.getElementById("text");
+        const text = textArea.value.replace(/\n/g, "<br>"); // Ersetzt Zeilenumbrüche durch <br>
         const fontSize = document.getElementById("font_size").value;
         const alignment = document.getElementById("alignment").value;
 
@@ -111,9 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // JSON generieren und in die Zwischenablage kopieren
-    async function generateJson() {
-        const text = document.getElementById("text").value;
+    // JSON generieren und anzeigen
+    function generateJson() {
+        const textArea = document.getElementById("text");
+        const text = textArea.value.replace(/\n/g, "<br>"); // Zeilenumbrüche in <br> umwandeln
         const fontSize = document.getElementById("font_size").value;
         const alignment = document.getElementById("alignment").value;
 
@@ -125,13 +130,21 @@ document.addEventListener("DOMContentLoaded", () => {
             },
         };
 
-        try {
-            await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
-            alert("JSON wurde in die Zwischenablage kopiert!");
-        } catch (error) {
-            console.error("Fehler beim Kopieren in die Zwischenablage:", error);
-            alert("Fehler beim Kopieren.");
-        }
+        // JSON als String formatieren
+        const jsonString = JSON.stringify(jsonData, null, 2);
+
+        // JSON im Ergebnisbereich anzeigen
+        resultContainer.innerText = jsonString;
+        resultContainer.style.whiteSpace = "pre-wrap"; // Zeilenumbrüche sichtbar machen
+        resultSection.classList.remove("hidden"); // Ergebnisbereich sichtbar machen
+    }
+
+    // JSON in die Zwischenablage kopieren
+    function copyToClipboard() {
+        const jsonString = resultContainer.innerText;
+        navigator.clipboard.writeText(jsonString)
+            .then(() => alert("JSON wurde in die Zwischenablage kopiert!"))
+            .catch((error) => alert("Fehler beim Kopieren in die Zwischenablage."));
     }
 
     // Einstellungen ein- und ausklappen
@@ -140,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
         settingsContent.classList.toggle("hidden");
 
         // Text im Button aktualisieren
-        settingsToggle.textContent = isHidden ? "➖" : "➕";
+        settingsToggle.textContent = isHidden ? "➕" : "➖";
     });
 
     // Initial Dark Mode setzen
@@ -164,4 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // JSON generieren
     generateJsonButton.addEventListener("click", generateJson);
+
+    // JSON in die Zwischenablage kopieren
+    copyToClipboardButton.addEventListener("click", copyToClipboard);
 });

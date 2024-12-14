@@ -208,3 +208,47 @@ body.dark-mode .secondary-button {
         padding: 1rem;
     }
 }
+
+.hidden {
+    display: none;
+}
+
+.json-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: monospace;
+    color: #333;
+    white-space: pre-wrap; /* Zeilenumbrüche im JSON sichtbar machen */
+}
+
+.json-result a {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.json-result a:hover {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #007BFF;
+}
+
+.icon-button:hover {
+    color: #0056b3;
+}
