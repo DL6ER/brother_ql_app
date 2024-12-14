@@ -30,10 +30,6 @@ async function loadSettings() {
         document.getElementById("printer_model").value = settings.printer_model;
         document.getElementById("label_size").value = settings.label_size;
 
-        // Allgemeine Einstellungen
-        document.getElementById("font_size").value = settings.font_size;
-        document.getElementById("alignment").value = settings.alignment;
-
         // Druckeinstellungen
         document.getElementById("rotate").value = settings.rotate;
         document.getElementById("threshold").value = settings.threshold;
@@ -53,10 +49,6 @@ async function saveSettings() {
     formData.append("printer_uri", document.getElementById("printer_uri").value);
     formData.append("printer_model", document.getElementById("printer_model").value);
     formData.append("label_size", document.getElementById("label_size").value);
-
-    // Allgemeine Einstellungen
-    formData.append("font_size", document.getElementById("font_size").value);
-    formData.append("alignment", document.getElementById("alignment").value);
 
     // Druckeinstellungen
     formData.append("rotate", document.getElementById("rotate").value);
@@ -78,32 +70,29 @@ async function saveSettings() {
     }
 }
 
-// Text drucken
-async function printText() {
-    const text = document.getElementById("text").value;
-
-    // Aktuelle Einstellungen holen
-    const labelSize = document.getElementById("label_size").value;
+// Schriftgröße und Ausrichtung live anwenden
+function updateTextAppearance() {
+    const textArea = document.getElementById("text");
     const fontSize = document.getElementById("font_size").value;
     const alignment = document.getElementById("alignment").value;
 
-    const rotate = document.getElementById("rotate").value;
-    const threshold = document.getElementById("threshold").value;
-    const dither = document.getElementById("dither").value === "true";
-    const compress = document.getElementById("compress").value === "true";
-    const red = document.getElementById("red").value === "true";
+    textArea.style.fontSize = `${fontSize}px`;
+    textArea.style.textAlign = alignment;
+}
+
+// Text drucken
+async function printText() {
+    const textArea = document.getElementById("text");
+    const text = textArea.value;
+
+    const fontSize = document.getElementById("font_size").value;
+    const alignment = document.getElementById("alignment").value;
 
     const jsonData = {
         text: text,
         settings: {
-            label_size: labelSize,
             font_size: fontSize,
             alignment: alignment,
-            rotate: rotate,
-            threshold: parseFloat(threshold),
-            dither: dither,
-            compress: compress,
-            red: red,
         },
     };
 
@@ -123,70 +112,52 @@ async function printText() {
 
 // JSON generieren und in Zwischenablage kopieren
 async function generateJson() {
-    const text = document.getElementById("text").value;
+    const textArea = document.getElementById("text");
+    const text = textArea.value;
 
-    // Aktuelle Einstellungen holen
-    const labelSize = document.getElementById("label_size").value;
     const fontSize = document.getElementById("font_size").value;
     const alignment = document.getElementById("alignment").value;
-
-    const rotate = document.getElementById("rotate").value;
-    const threshold = document.getElementById("threshold").value;
-    const dither = document.getElementById("dither").value === "true";
-    const compress = document.getElementById("compress").value === "true";
-    const red = document.getElementById("red").value === "true";
 
     const jsonData = {
         text: text,
         settings: {
-            label_size: labelSize,
             font_size: fontSize,
             alignment: alignment,
-            rotate: rotate,
-            threshold: parseFloat(threshold),
-            dither: dither,
-            compress: compress,
-            red: red,
         },
     };
 
-    // JSON in die Zwischenablage kopieren
     try {
         await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
         document.getElementById("result").innerText = "JSON wurde in die Zwischenablage kopiert!";
-    } catch (err) {
-        console.error("Fehler beim Kopieren in die Zwischenablage:", err);
-        document.getElementById("result").innerText = "Fehler beim Kopieren in die Zwischenablage.";
+    } catch (error) {
+        console.error("Fehler beim Kopieren in die Zwischenablage:", error);
+        document.getElementById("result").innerText = "Fehler beim Kopieren.";
     }
 }
 
-// Event-Listener
 document.addEventListener("DOMContentLoaded", () => {
-    // Dark Mode initial setzen
-    setInitialMode();
+    // Dark Mode
+    const darkModeToggle = document.getElementById("dark-mode-toggle");
+    const settingsToggle = document.getElementById("settings-toggle");
+    const settingsMenu = document.getElementById("settings-menu");
 
-    // Dark Mode Umschalter
-    document.getElementById("dark-mode-toggle").addEventListener("click", () => {
-        toggleDarkMode();
-    });
+    function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+        const mode = document.body.classList.contains("dark-mode") ? "dark" : "light";
+        localStorage.setItem("darkMode", mode);
+    }
 
-    // Einstellungen laden
+    function toggleSettingsMenu() {
+        settingsMenu.classList.toggle("hidden");
+        settingsMenu.classList.toggle("visible");
+    }
+
+    darkModeToggle.addEventListener("click", toggleDarkMode);
+    settingsToggle.addEventListener("click", toggleSettingsMenu);
+
+    // Load settings
     loadSettings();
 
-    // Einstellungen speichern
-    document.getElementById("save-settings").addEventListener("click", (e) => {
-        e.preventDefault();
-        saveSettings();
-    });
-
-    // Text drucken
-    document.getElementById("text-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        printText();
-    });
-
-    // JSON generieren
-    document.getElementById("generate-json").addEventListener("click", () => {
-        generateJson();
-    });
+    // Save settings
+    document.getElementById("save-settings").addEventListener("click", saveSettings);
 });

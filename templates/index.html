@@ -4,186 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brother QL Drucker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .header {
-            background-color: #343a40;
-            color: white;
-        }
-        .accordion-button:not(.collapsed) {
-            color: #fff;
-            background-color: #007bff;
-        }
-        .github-logo {
-            width: 32px;
-            height: 32px;
-        }
-    </style>
 </head>
 <body>
     <!-- Header -->
-    <header class="header py-3">
-        <div class="container d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <button id="dark-mode-toggle" class="btn btn-sm btn-outline-light me-3">
-                    🌙 Dark Mode
+    <header class="header">
+        <div class="container">
+            <h1>Brother QL Drucker</h1>
+            <div class="header-actions">
+                <button id="dark-mode-toggle" class="dark-mode-toggle">🌙 Dark Mode</button>
+                <button id="settings-toggle" class="settings-toggle">
+                    ⚙️
                 </button>
-                <div>
-                    <h1 class="mb-0">Brother QL Drucker</h1>
-                    <small>Version: 1.0.0</small>
-                </div>
             </div>
-            <a href="https://github.com/your-repo-link" target="_blank" class="text-light">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" class="github-logo">
-            </a>
         </div>
     </header>
 
+    <!-- Einstellungs-Menü -->
+    <aside id="settings-menu" class="settings-menu hidden">
+        <section class="card">
+            <h2>Einstellungen</h2>
+            <div class="settings-container">
+                <!-- Druckerkonfiguration -->
+                <div class="settings-group">
+                    <h3>Druckerkonfiguration</h3>
+                    <form id="printer-settings-form" class="form">
+                        <label for="printer_uri">Drucker URI:</label>
+                        <input type="text" id="printer_uri" name="printer_uri" placeholder="tcp://192.168.1.100">
+
+                        <label for="printer_model">Druckermodell:</label>
+                        <input type="text" id="printer_model" name="printer_model" placeholder="QL-800">
+
+                        <label for="label_size">Label-Größe:</label>
+                        <select id="label_size" name="label_size">
+                            <option value="62">62 mm</option>
+                            <option value="29">29 mm</option>
+                            <option value="12">12 mm</option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Druckeinstellungen -->
+                <div class="settings-group">
+                    <h3>Druckeinstellungen</h3>
+                    <form id="print-settings-form" class="form">
+                        <label for="rotate">Rotation:</label>
+                        <select id="rotate" name="rotate">
+                            <option value="0">0°</option>
+                            <option value="90">90°</option>
+                            <option value="180">180°</option>
+                            <option value="270">270°</option>
+                        </select>
+
+                        <label for="threshold">Schwellenwert (Threshold):</label>
+                        <input type="number" id="threshold" name="threshold" value="70" min="0" max="100" step="1">
+
+                        <label for="dither">Dithering:</label>
+                        <select id="dither" name="dither">
+                            <option value="false">Deaktiviert</option>
+                            <option value="true">Aktiviert</option>
+                        </select>
+
+                        <label for="compress">Kompression:</label>
+                        <select id="compress" name="compress">
+                            <option value="false">Deaktiviert</option>
+                            <option value="true">Aktiviert</option>
+                        </select>
+
+                        <label for="red">Zweifarbiger Druck (Schwarz/Rot):</label>
+                        <select id="red" name="red">
+                            <option value="true">Aktiviert</option>
+                            <option value="false">Deaktiviert</option>
+                        </select>
+                    </form>
+                </div>
+                <button id="save-settings" class="save-button">Einstellungen speichern</button>
+            </div>
+        </section>
+    </aside>
+
     <!-- Main Content -->
-    <div class="container my-4">
-        <!-- Einstellungen -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h2 class="card-title">Einstellungen</h2>
-                <div class="accordion" id="settingsAccordion">
-                    <!-- Druckerkonfiguration -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="printerSettingsHeading">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#printerSettings" aria-expanded="true" aria-controls="printerSettings">
-                                Druckerkonfiguration
-                            </button>
-                        </h2>
-                        <div id="printerSettings" class="accordion-collapse collapse show" aria-labelledby="printerSettingsHeading">
-                            <div class="accordion-body">
-                                <form id="printer-settings-form">
-                                    <div class="mb-3">
-                                        <label for="printer_uri" class="form-label">Drucker URI:</label>
-                                        <input type="text" class="form-control" id="printer_uri" name="printer_uri" placeholder="tcp://192.168.1.100">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="printer_model" class="form-label">Druckermodell:</label>
-                                        <input type="text" class="form-control" id="printer_model" name="printer_model" placeholder="QL-800">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="label_size" class="form-label">Label-Größe:</label>
-                                        <select class="form-select" id="label_size" name="label_size">
-                                            <option value="62">62 mm</option>
-                                            <option value="29">29 mm</option>
-                                            <option value="12">12 mm</option>
-                                        </select>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+    <main class="main-container">
+        <!-- Textdruck -->
+        <section class="card">
+            <h2>Text drucken</h2>
+            <form id="text-form" class="form">
+                <!-- Schriftgröße und Ausrichtung -->
+                <div class="form-group settings-inline">
+                    <div class="inline-setting">
+                        <label for="font_size">Schriftgröße:</label>
+                        <input type="number" id="font_size" name="font_size" value="50" min="10" max="100">
                     </div>
-
-                    <!-- Allgemeine Einstellungen -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="generalSettingsHeading">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#generalSettings" aria-expanded="false" aria-controls="generalSettings">
-                                Allgemeine Einstellungen
-                            </button>
-                        </h2>
-                        <div id="generalSettings" class="accordion-collapse collapse" aria-labelledby="generalSettingsHeading">
-                            <div class="accordion-body">
-                                <form id="general-settings-form">
-                                    <div class="mb-3">
-                                        <label for="font_size" class="form-label">Schriftgröße:</label>
-                                        <input type="number" class="form-control" id="font_size" name="font_size" value="50" min="10" max="100">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="alignment" class="form-label">Ausrichtung:</label>
-                                        <select class="form-select" id="alignment" name="alignment">
-                                            <option value="left">Links</option>
-                                            <option value="center">Zentriert</option>
-                                            <option value="right">Rechts</option>
-                                        </select>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Druckeinstellungen -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="printSettingsHeading">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#printSettings" aria-expanded="false" aria-controls="printSettings">
-                                Druckeinstellungen
-                            </button>
-                        </h2>
-                        <div id="printSettings" class="accordion-collapse collapse" aria-labelledby="printSettingsHeading">
-                            <div class="accordion-body">
-                                <form id="print-settings-form">
-                                    <div class="mb-3">
-                                        <label for="rotate" class="form-label">Rotation:</label>
-                                        <select class="form-select" id="rotate" name="rotate">
-                                            <option value="0">0°</option>
-                                            <option value="90">90°</option>
-                                            <option value="180">180°</option>
-                                            <option value="270">270°</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="threshold" class="form-label">Schwellenwert (Threshold):</label>
-                                        <input type="number" class="form-control" id="threshold" name="threshold" value="70" min="0" max="100" step="1">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="dither" class="form-label">Dithering:</label>
-                                        <select class="form-select" id="dither" name="dither">
-                                            <option value="false">Deaktiviert</option>
-                                            <option value="true">Aktiviert</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="compress" class="form-label">Kompression:</label>
-                                        <select class="form-select" id="compress" name="compress">
-                                            <option value="false">Deaktiviert</option>
-                                            <option value="true">Aktiviert</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="red" class="form-label">Zweifarbiger Druck (Schwarz/Rot):</label>
-                                        <select class="form-select" id="red" name="red">
-                                            <option value="true">Aktiviert</option>
-                                            <option value="false">Deaktiviert</option>
-                                        </select>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+                    <div class="inline-setting">
+                        <label for="alignment">Ausrichtung:</label>
+                        <select id="alignment" name="alignment">
+                            <option value="left">Links</option>
+                            <option value="center">Zentriert</option>
+                            <option value="right">Rechts</option>
+                        </select>
                     </div>
                 </div>
-                <button id="save-settings" class="btn btn-primary mt-3">Einstellungen speichern</button>
-            </div>
-        </div>
-
-        <!-- Textdruck -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h2 class="card-title">Text drucken</h2>
-                <form id="text-form">
-                    <div class="mb-3">
-                        <label for="text" class="form-label">Text (HTML-Formatierung erlaubt):</label>
-                        <textarea id="text" name="text" class="form-control" rows="4" required>
-Das ist ein <b>fetter</b> Text.<br>
-Das nächste Wort ist <span color="red">rot</span>.
-                        </textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Drucken</button>
-                    <button type="button" id="generate-json" class="btn btn-secondary">JSON generieren</button>
-                </form>
-            </div>
-        </div>
+                <!-- Textfeld -->
+                <div class="form-group">
+                    <label for="text">Text (HTML-Formatierung erlaubt):</label>
+                    <textarea id="text" name="text" rows="5" placeholder="Geben Sie hier Ihren Text ein..." required></textarea>
+                </div>
+                <!-- Buttons -->
+                <div class="form-group">
+                    <button type="submit" class="submit-button">Drucken</button>
+                    <button type="button" id="generate-json" class="secondary-button">JSON generieren</button>
+                </div>
+            </form>
+        </section>
 
         <!-- Ergebnis -->
-        <div id="result" class="mt-4 text-center"></div>
-    </div>
+        <div id="result" class="result-display"></div>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/scripts.js"></script>
 </body>
 </html>
