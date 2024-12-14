@@ -9,14 +9,14 @@ import json
 
 app = Flask(__name__)
 
-# Standard-Druckerkonfiguration
-PRINTER_URI = os.getenv("PRINTER_URI", "tcp://192.168.1.100")
-PRINTER_MODEL = os.getenv("PRINTER_MODEL", "QL-800")
+# Standard-Dateipfad für Settings
 SETTINGS_FILE = "settings.json"
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 # Standard-Einstellungen
 DEFAULT_SETTINGS = {
+    "printer_uri": "tcp://192.168.1.100",
+    "printer_model": "QL-800",
     "label_size": "62",
     "font_size": 50,
     "alignment": "left",
@@ -27,7 +27,7 @@ DEFAULT_SETTINGS = {
     "red": True  # Zweifarbiger Druck (Schwarz/Rot) verwenden
 }
 
-# Einstellungen initialisieren
+# Einstellungen laden/speichern
 def load_settings():
     """Lädt die Einstellungen aus einer JSON-Datei."""
     if os.path.exists(SETTINGS_FILE):
@@ -40,7 +40,7 @@ def save_settings(settings):
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings, f, indent=4)
 
-# Globale Einstellungen laden
+# Globale Einstellungen initialisieren
 settings = load_settings()
 
 class TextParser(HTMLParser):
@@ -82,9 +82,11 @@ def get_settings():
 def update_settings():
     """Einstellungen aktualisieren und persistent speichern."""
     global settings
+    settings["printer_uri"] = request.form.get("printer_uri", settings["printer_uri"])
+    settings["printer_model"] = request.form.get("printer_model", settings["printer_model"])
     settings["label_size"] = request.form.get("label_size", settings["label_size"])
     settings["font_size"] = int(request.form.get("font_size", settings["font_size"]))
-    settings["alignment"] = request.form.get("alignment", settings.get("alignment", "left"))
+    settings["alignment"] = request.form.get("alignment", settings["alignment"])
     settings["rotate"] = request.form.get("rotate", settings["rotate"])
     settings["threshold"] = float(request.form.get("threshold", settings["threshold"]))
     settings["dither"] = request.form.get("dither", str(settings["dither"])).lower() == "true"
@@ -92,36 +94,22 @@ def update_settings():
     settings["red"] = request.form.get("red", str(settings["red"])).lower() == "true"
 
     save_settings(settings)
-
     return jsonify({"success": True, "message": "Einstellungen gespeichert."})
 
 @app.route("/api/text/", methods=["POST"])
 def api_text():
+    """Verarbeitet und druckt den eingegebenen Text."""
     data = request.json
     text = data.get("text", "").strip()
-    label_size = data.get("settings", {}).get("label_size", settings["label_size"])
-    font_size = data.get("settings", {}).get("font_size", settings["font_size"])
     alignment = data.get("settings", {}).get("alignment", settings["alignment"])
 
     if not text:
         return jsonify({"error": "Kein Text angegeben."}), 400
 
     try:
-        # Temporär aktualisierte Schrift- und Label-Größe anwenden
-        original_font_size = settings["font_size"]
-        original_label_size = settings["label_size"]
-
-        settings["font_size"] = int(font_size)
-        settings["label_size"] = label_size
-
         # Label erzeugen und drucken
         image_path = create_label_image(text, alignment)
         send_to_printer(image_path)
-
-        # Originale Werte wiederherstellen
-        settings["font_size"] = original_font_size
-        settings["label_size"] = original_label_size
-
         return jsonify({"success": True, "message": "Textdruckauftrag gesendet."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -132,7 +120,6 @@ def create_label_image(html_text, alignment="left"):
     parser = TextParser()
     parser.feed(html_text)
 
-    # Gruppieren der Zeilen
     lines = []
     current_line = []
     for part in parser.parts:
@@ -145,7 +132,6 @@ def create_label_image(html_text, alignment="left"):
     if current_line:
         lines.append(current_line)
 
-    # Höhe berechnen
     dummy_image = Image.new("RGB", (width, 10), "white")
     dummy_draw = ImageDraw.Draw(dummy_image)
 
@@ -172,7 +158,6 @@ def create_label_image(html_text, alignment="left"):
 
     total_height += 10
 
-    # Bild erstellen
     image = Image.new("RGB", (width, total_height), "white")
     draw = ImageDraw.Draw(image)
 
@@ -200,7 +185,7 @@ def create_label_image(html_text, alignment="left"):
 
 def send_to_printer(image_path):
     """Sendet das Label an den Drucker."""
-    qlr = BrotherQLRaster(PRINTER_MODEL)
+    qlr = BrotherQLRaster(settings["printer_model"])
     qlr.exception_on_warning = True
     instructions = convert(
         qlr=qlr,
@@ -212,7 +197,7 @@ def send_to_printer(image_path):
         compress=settings["compress"],
         red=settings["red"],
     )
-    backend = backend_factory("network")["backend_class"](PRINTER_URI)
+    backend = backend_factory("network")["backend_class"](settings["printer_uri"])
     backend.write(instructions)
     backend.dispose()
 
