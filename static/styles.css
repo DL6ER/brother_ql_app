@@ -1,125 +1,210 @@
 /* Allgemein */
 body {
-    font-family: 'Arial', sans-serif;
     margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
+    font-family: 'Arial', sans-serif;
+    background: #f9f9f9;
     color: #333;
 }
 
+h1, h2, legend {
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 1.8rem;
+}
+
+h2 {
+    font-size: 1.4rem;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+}
+
+/* Karten */
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 600px;
+}
+
 /* Header */
-.header {
-    background-color: #4a90e2;
+.app-header {
+    background: #007BFF;
     color: white;
+    width: 100%;
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.header h1 {
-    font-size: 1.5rem;
-    margin: 0;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 1rem;
 }
 
-.dark-mode-toggle,
-.settings-toggle {
-    background-color: #333;
-    color: white;
+.icon-button {
+    background: none;
     border: none;
-    border-radius: 5px;
-    padding: 0.5rem 1rem;
+    color: white;
+    font-size: 1.5rem;
     cursor: pointer;
 }
 
-.dark-mode-toggle:hover,
-.settings-toggle:hover {
-    background-color: #555;
+/* Einklappbare Inhalte */
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
 }
 
-/* Einstellungs-Menü */
-.settings-menu {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 300px;
-    height: 100%;
-    background-color: white;
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
-    padding: 1rem;
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
-    z-index: 1000;
+.collapsible-header span {
+    font-size: 1.2rem;
+    color: #007BFF;
+    cursor: pointer;
 }
 
-.settings-menu.hidden {
-    transform: translateX(100%);
+.collapsible-content.hidden {
+    display: none;
 }
 
-.settings-menu.visible {
-    transform: translateX(0);
+/* Eingabefelder */
+label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    display: block;
 }
 
-/* Hauptbereich */
-.main-container {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
+input, textarea, select {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background: #fff;
+    box-sizing: border-box;
 }
 
-.card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+input:focus, textarea:focus, select:focus {
+    border-color: #007BFF;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+    outline: none;
 }
 
-.card h2 {
-    font-size: 1.25rem;
+textarea {
+    resize: vertical;
+}
+
+/* Formulare */
+.form-group {
     margin-bottom: 1rem;
 }
 
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 150px;
+}
+
 /* Buttons */
-.submit-button,
-.secondary-button,
-.save-button {
-    background-color: #4a90e2;
-    color: white;
+button {
+    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 5px;
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
     font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.primary-button {
+    background: #007BFF;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.primary-button:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
 }
 
 .secondary-button {
-    background-color: #777;
+    background: #6c757d;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.submit-button:hover,
-.secondary-button:hover,
-.save-button:hover {
-    background-color: #357abd;
+.secondary-button:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+}
+
+/* Responsiv */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+
+    .app-container {
+        padding: 1rem;
+    }
 }
 
 /* Dark Mode */
 body.dark-mode {
-    background-color: #1e1e1e;
-    color: #f5f5f5;
+    background: #121212;
+    color: #ffffff;
 }
 
-body.dark-mode .header {
-    background-color: #333;
+body.dark-mode .card {
+    background: #1e1e1e;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
-body.dark-mode .settings-menu {
-    background-color: #333;
-    color: #f5f5f5;
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: #333333;
+    border: 1px solid #555555;
+    color: #ffffff;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    border-color: #007BFF;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+body.dark-mode .primary-button {
+    background: #0056b3;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .secondary-button {
+    background: #444444;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
 }

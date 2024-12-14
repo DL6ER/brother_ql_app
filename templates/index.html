@@ -3,123 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brother QL Drucker</title>
+    <title>Brother QL Drucker Web-App</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
             <h1>Brother QL Drucker</h1>
             <div class="header-actions">
-                <button id="dark-mode-toggle" class="dark-mode-toggle">🌙 Dark Mode</button>
-                <button id="settings-toggle" class="settings-toggle">
-                    ⚙️
-                </button>
+                <button id="dark-mode-toggle" class="icon-button" aria-label="Dark Mode">🌙</button>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- Einstellungs-Menü -->
-    <aside id="settings-menu" class="settings-menu hidden">
-        <section class="card">
-            <h2>Einstellungen</h2>
-            <div class="settings-container">
-                <!-- Druckerkonfiguration -->
-                <div class="settings-group">
-                    <h3>Druckerkonfiguration</h3>
-                    <form id="printer-settings-form" class="form">
-                        <label for="printer_uri">Drucker URI:</label>
-                        <input type="text" id="printer_uri" name="printer_uri" placeholder="tcp://192.168.1.100">
+        <!-- Main Content -->
+        <main>
+            <!-- Textdruck -->
+            <section class="card">
+                <h2>Text drucken</h2>
+                <form id="text-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="font_size">Schriftgröße:</label>
+                            <input type="number" id="font_size" value="50" min="10" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="alignment">Ausrichtung:</label>
+                            <select id="alignment">
+                                <option value="left">Links</option>
+                                <option value="center">Zentriert</option>
+                                <option value="right">Rechts</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="text">Text:</label>
+                        <textarea id="text" rows="5" placeholder="Geben Sie Ihren Text ein..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="primary-button">Drucken</button>
+                        <button type="button" id="generate-json" class="secondary-button">JSON generieren</button>
+                    </div>
+                </form>
+            </section>
 
-                        <label for="printer_model">Druckermodell:</label>
-                        <input type="text" id="printer_model" name="printer_model" placeholder="QL-800">
+            <!-- Einklappbare Einstellungen -->
+            <section class="card">
+                <h2 class="collapsible-header">Einstellungen <span id="settings-toggle">➕</span></h2>
+                <div id="settings-content" class="collapsible-content hidden">
+                    <form id="settings-form">
+                        <fieldset>
+                            <legend>Druckerkonfiguration</legend>
+                            <div class="form-group">
+                                <label for="printer_uri">Drucker URI:</label>
+                                <input type="text" id="printer_uri" placeholder="tcp://192.168.1.100">
+                            </div>
+                            <div class="form-group">
+                                <label for="printer_model">Druckermodell:</label>
+                                <input type="text" id="printer_model" placeholder="QL-800">
+                            </div>
+                            <div class="form-group">
+                                <label for="label_size">Label-Größe:</label>
+                                <select id="label_size">
+                                    <option value="62">62 mm</option>
+                                    <option value="29">29 mm</option>
+                                    <option value="12">12 mm</option>
+                                </select>
+                            </div>
+                        </fieldset>
 
-                        <label for="label_size">Label-Größe:</label>
-                        <select id="label_size" name="label_size">
-                            <option value="62">62 mm</option>
-                            <option value="29">29 mm</option>
-                            <option value="12">12 mm</option>
-                        </select>
+                        <fieldset>
+                            <legend>Druckeinstellungen</legend>
+                            <div class="form-group">
+                                <label for="rotate">Rotation:</label>
+                                <select id="rotate">
+                                    <option value="0">0°</option>
+                                    <option value="90">90°</option>
+                                    <option value="180">180°</option>
+                                    <option value="270">270°</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="threshold">Schwellenwert:</label>
+                                <input type="number" id="threshold" min="0" max="100" step="1" value="70">
+                            </div>
+                            <div class="form-group">
+                                <label for="dither">Dithering:</label>
+                                <select id="dither">
+                                    <option value="false">Deaktiviert</option>
+                                    <option value="true">Aktiviert</option>
+                                </select>
+                            </div>
+                        </fieldset>
+
+                        <div class="form-actions">
+                            <button type="button" class="primary-button" id="save-settings">Speichern</button>
+                        </div>
                     </form>
                 </div>
-
-                <!-- Druckeinstellungen -->
-                <div class="settings-group">
-                    <h3>Druckeinstellungen</h3>
-                    <form id="print-settings-form" class="form">
-                        <label for="rotate">Rotation:</label>
-                        <select id="rotate" name="rotate">
-                            <option value="0">0°</option>
-                            <option value="90">90°</option>
-                            <option value="180">180°</option>
-                            <option value="270">270°</option>
-                        </select>
-
-                        <label for="threshold">Schwellenwert (Threshold):</label>
-                        <input type="number" id="threshold" name="threshold" value="70" min="0" max="100" step="1">
-
-                        <label for="dither">Dithering:</label>
-                        <select id="dither" name="dither">
-                            <option value="false">Deaktiviert</option>
-                            <option value="true">Aktiviert</option>
-                        </select>
-
-                        <label for="compress">Kompression:</label>
-                        <select id="compress" name="compress">
-                            <option value="false">Deaktiviert</option>
-                            <option value="true">Aktiviert</option>
-                        </select>
-
-                        <label for="red">Zweifarbiger Druck (Schwarz/Rot):</label>
-                        <select id="red" name="red">
-                            <option value="true">Aktiviert</option>
-                            <option value="false">Deaktiviert</option>
-                        </select>
-                    </form>
-                </div>
-                <button id="save-settings" class="save-button">Einstellungen speichern</button>
-            </div>
-        </section>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-container">
-        <!-- Textdruck -->
-        <section class="card">
-            <h2>Text drucken</h2>
-            <form id="text-form" class="form">
-                <!-- Schriftgröße und Ausrichtung -->
-                <div class="form-group settings-inline">
-                    <div class="inline-setting">
-                        <label for="font_size">Schriftgröße:</label>
-                        <input type="number" id="font_size" name="font_size" value="50" min="10" max="100">
-                    </div>
-                    <div class="inline-setting">
-                        <label for="alignment">Ausrichtung:</label>
-                        <select id="alignment" name="alignment">
-                            <option value="left">Links</option>
-                            <option value="center">Zentriert</option>
-                            <option value="right">Rechts</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- Textfeld -->
-                <div class="form-group">
-                    <label for="text">Text (HTML-Formatierung erlaubt):</label>
-                    <textarea id="text" name="text" rows="5" placeholder="Geben Sie hier Ihren Text ein..." required></textarea>
-                </div>
-                <!-- Buttons -->
-                <div class="form-group">
-                    <button type="submit" class="submit-button">Drucken</button>
-                    <button type="button" id="generate-json" class="secondary-button">JSON generieren</button>
-                </div>
-            </form>
-        </section>
-
-        <!-- Ergebnis -->
-        <div id="result" class="result-display"></div>
-    </main>
+            </section>
+        </main>
+    </div>
 
     <script src="/static/scripts.js"></script>
 </body>

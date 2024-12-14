@@ -136,28 +136,34 @@ async function generateJson() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Dark Mode
     const darkModeToggle = document.getElementById("dark-mode-toggle");
     const settingsToggle = document.getElementById("settings-toggle");
-    const settingsMenu = document.getElementById("settings-menu");
+    const settingsContent = document.getElementById("settings-content");
 
-    function toggleDarkMode() {
-        document.body.classList.toggle("dark-mode");
-        const mode = document.body.classList.contains("dark-mode") ? "dark" : "light";
-        localStorage.setItem("darkMode", mode);
+    // Check if Dark Mode is enabled in localStorage
+    const isDarkMode = localStorage.getItem("darkMode") === "true";
+
+    // Apply the initial mode
+    if (isDarkMode) {
+        document.body.classList.add("dark-mode");
+        darkModeToggle.textContent = "☀️"; // Sun icon for light mode toggle
     }
 
-    function toggleSettingsMenu() {
-        settingsMenu.classList.toggle("hidden");
-        settingsMenu.classList.toggle("visible");
-    }
+    // Toggle Dark Mode
+    darkModeToggle.addEventListener("click", () => {
+        const isCurrentlyDark = document.body.classList.toggle("dark-mode");
+        localStorage.setItem("darkMode", isCurrentlyDark);
 
-    darkModeToggle.addEventListener("click", toggleDarkMode);
-    settingsToggle.addEventListener("click", toggleSettingsMenu);
+        // Change the toggle icon
+        darkModeToggle.textContent = isCurrentlyDark ? "☀️" : "🌙";
+    });
 
-    // Load settings
-    loadSettings();
+    // Toggle Einstellungen ein- und ausklappen
+    settingsToggle.addEventListener("click", () => {
+        const isHidden = settingsContent.classList.contains("hidden");
+        settingsContent.classList.toggle("hidden");
 
-    // Save settings
-    document.getElementById("save-settings").addEventListener("click", saveSettings);
+        // Toggle Text im Button
+        settingsToggle.textContent = isHidden ? "➖" : "➕";
+    });
 });
