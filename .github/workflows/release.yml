@@ -1,0 +1,82 @@
+name: Release Workflow
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout des Codes
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Git konfigurieren
+      - name: Configure Git
+        run: |
+          git config --global user.email "ci@github-actions.com"
+          git config --global user.name "GitHub Actions CI"
+
+      # Versionsnummer und Release Notes aus changelog.md extrahieren
+      - name: Extract Version and Release Notes
+        id: changelog
+        run: |
+          # Datei prüfen
+          if [ ! -f changelog.md ]; then
+            echo "ERROR: changelog.md not found!" >&2
+            exit 1
+          fi
+
+          # Branch prüfen
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            # Reguläres Release (erstes "## Release")
+            VERSION=$(grep -m 1 '^## Release ' changelog.md | awk '{print $3}')
+            NOTES=$(awk '/^## Release / {if (NR > 1) exit; next} {print}' changelog.md)
+          elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            # Beta-Release (erstes "## Beta Release")
+            VERSION=$(grep -m 1 '^## Beta Release ' changelog.md | awk '{print $4}')
+            NOTES=$(awk '/^## Beta Release / {if (NR > 1) exit; next} {print}' changelog.md)
+          else
+            echo "ERROR: Unsupported branch ${{ github.ref }}" >&2
+            exit 1
+          fi
+
+          if [ -z "$VERSION" ]; then
+            echo "ERROR: Could not extract version from changelog.md" >&2
+            exit 1
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "NOTES<<EOF" >> $GITHUB_ENV
+          echo "$NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # Überprüfen, ob der Tag existiert
+      - name: Check if Tag Already Exists
+        run: |
+          if git rev-parse "refs/tags/${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "Tag ${{ env.VERSION }} already exists. Skipping release."
+            exit 0
+          fi
+
+      # Neuen Git-Tag erstellen und pushen
+      - name: Create and Push Tag
+        run: |
+          git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
+          git push origin ${{ env.VERSION }}
+
+      # GitHub Release erstellen
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: "Release ${{ env.VERSION }}"
+          body: ${{ env.NOTES }}
+          draft: false
+          prerelease: ${{ github.ref == 'refs/heads/dev' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
