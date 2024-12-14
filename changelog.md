@@ -1,4 +1,4 @@
-## Beta Release 1.1.0
+## Beta Release 1.2.0
 What’s New:
 	•	Modern, responsive UI with collapsible settings for better usability.
 	•	Dynamic result section with a copy-to-clipboard button for JSON output.
