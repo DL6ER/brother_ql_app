@@ -30,10 +30,13 @@ jobs:
             exit 1
           fi
 
+          # Branch prüfen
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            # Reguläres Release (erstes "## Release")
             VERSION=$(grep -m 1 '^## Release ' changelog.md | awk '{print $3}')
             NOTES=$(awk '/^## Release / {if (NR > 1) exit; next} {print}' changelog.md)
           elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            # Beta-Release (erstes "## Beta Release")
             VERSION=$(grep -m 1 '^## Beta Release ' changelog.md | awk '{print $4}')
             NOTES=$(awk '/^## Beta Release / {if (NR > 1) exit; next} {print}' changelog.md)
           else
@@ -60,6 +63,7 @@ jobs:
             echo "EXISTS=true" >> $GITHUB_ENV
           else
             echo "EXISTS=false" >> $GITHUB_ENV
+          fi
 
       # Schritt überspringen, wenn Tag im Remote existiert
       - name: Skip if Tag Exists
