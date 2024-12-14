@@ -25,8 +25,12 @@ async function loadSettings() {
         const response = await fetch("/settings");
         const settings = await response.json();
 
-        // Allgemeine Einstellungen
+        // Druckerkonfiguration
+        document.getElementById("printer_uri").value = settings.printer_uri;
+        document.getElementById("printer_model").value = settings.printer_model;
         document.getElementById("label_size").value = settings.label_size;
+
+        // Allgemeine Einstellungen
         document.getElementById("font_size").value = settings.font_size;
         document.getElementById("alignment").value = settings.alignment;
 
@@ -44,9 +48,13 @@ async function loadSettings() {
 // Einstellungen speichern
 async function saveSettings() {
     const formData = new FormData();
-    
-    // Allgemeine Einstellungen
+
+    // Druckerkonfiguration
+    formData.append("printer_uri", document.getElementById("printer_uri").value);
+    formData.append("printer_model", document.getElementById("printer_model").value);
     formData.append("label_size", document.getElementById("label_size").value);
+
+    // Allgemeine Einstellungen
     formData.append("font_size", document.getElementById("font_size").value);
     formData.append("alignment", document.getElementById("alignment").value);
 
@@ -63,7 +71,7 @@ async function saveSettings() {
             body: formData,
         });
         const result = await response.json();
-        document.getElementById("result").innerText = result.message || result.error;
+        document.getElementById("result").innerText = result.message || "Einstellungen gespeichert!";
     } catch (error) {
         console.error("Fehler beim Speichern der Einstellungen:", error);
         document.getElementById("result").innerText = "Fehler beim Speichern der Einstellungen.";
@@ -106,7 +114,7 @@ async function printText() {
             body: JSON.stringify(jsonData),
         });
         const result = await response.json();
-        document.getElementById("result").innerText = result.message || result.error;
+        document.getElementById("result").innerText = result.message || "Text wurde gedruckt!";
     } catch (error) {
         console.error("Fehler beim Drucken des Textes:", error);
         document.getElementById("result").innerText = "Fehler beim Drucken.";
