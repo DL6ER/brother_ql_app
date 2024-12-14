@@ -162,17 +162,6 @@ button {
     gap: 1rem;
 }
 
-/* Responsiv */
-@media (max-width: 768px) {
-    .form-row {
-        flex-direction: column;
-    }
-
-    .app-container {
-        padding: 1rem;
-    }
-}
-
 /* Dark Mode */
 body.dark-mode {
     background: #121212;
@@ -207,4 +196,15 @@ body.dark-mode .primary-button {
 body.dark-mode .secondary-button {
     background: #444444;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsiv */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+
+    .app-container {
+        padding: 1rem;
+    }
 }
