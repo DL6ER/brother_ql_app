@@ -47,31 +47,18 @@ class TextParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.parts = []
-        self.current_tag = None
-        self.current_attrs = {}
 
     def handle_starttag(self, tag, attrs):
-        self.current_tag = tag
-        self.current_attrs = dict(attrs)
         if tag == "br":
-            self.parts.append({"text": "<br>", "font": None, "color": None, "align": None})
+            self.parts.append({"text": "<br>", "font": None})
 
     def handle_data(self, data):
-        color = self.current_attrs.get("color", "black")
         font_size = settings.get("font_size", 50)
         font = ImageFont.truetype(FONT_PATH, font_size)
-        bold = self.current_tag == "b"
-        if bold:
-            font = ImageFont.truetype(FONT_PATH, font_size + 5)
-        self.parts.append({"text": data.strip(), "font": font, "color": color, "align": None})
+        self.parts.append({"text": data.strip(), "font": font})
 
     def handle_endtag(self, tag):
-        self.current_tag = None
-        self.current_attrs = {}
-
-@app.route("/")
-def index():
-    return render_template("index.html")
+        pass
 
 @app.route("/settings", methods=["GET"])
 def get_settings():
@@ -80,40 +67,84 @@ def get_settings():
 @app.route("/update_settings", methods=["POST"])
 def update_settings():
     global settings
-    settings["font_size"] = int(request.form.get("font_size", settings["font_size"]))
-    settings["printer_uri"] = request.form.get("printer_uri", settings["printer_uri"])
-    settings["printer_model"] = request.form.get("printer_model", settings["printer_model"])
-    settings["label_size"] = request.form.get("label_size", settings["label_size"])
-    settings["alignment"] = request.form.get("alignment", settings["alignment"])
-    settings["rotate"] = request.form.get("rotate", settings["rotate"])
-    settings["threshold"] = float(request.form.get("threshold", settings["threshold"]))
-    settings["dither"] = request.form.get("dither", "false").lower() == "true"
-    settings["red"] = request.form.get("red", "true").lower() == "true"
+    settings.update(request.json)
     save_settings(settings)
     return jsonify({"success": True, "message": "Einstellungen gespeichert."})
 
 @app.route("/api/text/", methods=["POST"])
 def api_text():
+    """
+    Endpoint to print text labels. Accepts text and settings in the request JSON.
+    """
     data = request.json
+
+    # Extract text and settings from the request
     text = data.get("text", "").strip()
-    font_size = int(data.get("settings", {}).get("font_size", settings["font_size"]))
-    alignment = data.get("settings", {}).get("alignment", settings["alignment"])
+    api_settings = data.get("settings", {})
+    local_settings = {**settings, **api_settings}  # Combine global settings with API-provided settings
 
     if not text:
         return jsonify({"error": "Kein Text angegeben."}), 400
 
     try:
-        image_path = create_label_image(text, font_size, alignment)
-        rotated_path = apply_rotation(image_path, int(settings.get("rotate", 0)))
-        logging.debug(f"Label-Bild erstellt: {rotated_path}")
-        send_to_printer(rotated_path)
+        # Generate label image
+        image_path = create_label_image(text, local_settings)
+
+        # Apply rotation if specified
+        rotated_path = apply_rotation(image_path, int(local_settings.get("rotate", 0)))
+
+        # Send to printer with updated settings
+        send_to_printer(rotated_path, local_settings)
+
         return jsonify({"success": True, "message": "Text erfolgreich gedruckt!"})
     except Exception as e:
         logging.error(f"Fehler beim Textdruck: {e}")
         return jsonify({"error": str(e)}), 500
 
-def create_label_image(html_text, font_size, alignment="left"):
-    width = 696
+@app.route("/api/image/", methods=["POST"])
+def print_image():
+    """
+    Endpoint to print images. Accepts an uploaded image and settings via request.
+    """
+    if "image" not in request.files:
+        return jsonify({"error": "Kein Bild hochgeladen."}), 400
+
+    image_file = request.files["image"]
+    if image_file.filename == "":
+        return jsonify({"error": "Kein Bild ausgewählt."}), 400
+
+    try:
+        # Parse optional settings from request
+        api_settings = json.loads(request.form.get("settings", "{}"))
+        local_settings = {**settings, **api_settings}  # Combine global settings with API-provided settings
+
+        # Save the uploaded image
+        image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
+        image_file.save(image_path)
+
+        # Resize the image to fit label width
+        resized_path = resize_image(image_path)
+
+        # Apply rotation if specified
+        rotated_path = apply_rotation(resized_path, int(local_settings.get("rotate", 0)))
+
+        # Send to printer with updated settings
+        send_to_printer(rotated_path, local_settings)
+
+        return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
+    except Exception as e:
+        logging.error(f"Fehler beim Bilddruck: {e}")
+        return jsonify({"error": str(e)}), 500
+
+def create_label_image(html_text, local_settings):
+    """
+    Creates a label image from the provided HTML-like text and settings.
+    """
+    width = 696  # Fixed label width
+    font_size = int(local_settings.get("font_size", 50))
+    alignment = local_settings.get("alignment", "left")
+
+    # Parse the HTML-like text into parts
     parser = TextParser()
     parser.feed(html_text)
 
@@ -129,6 +160,7 @@ def create_label_image(html_text, font_size, alignment="left"):
     if current_line:
         lines.append(current_line)
 
+    # Prepare to calculate dimensions
     dummy_image = Image.new("RGB", (width, 10), "white")
     dummy_draw = ImageDraw.Draw(dummy_image)
 
@@ -136,6 +168,7 @@ def create_label_image(html_text, font_size, alignment="left"):
     line_spacing = 5
     line_metrics = []
 
+    # Measure each line's height and width
     for line in lines:
         ascent_values, descent_values = [], []
         line_width = 0
@@ -153,26 +186,18 @@ def create_label_image(html_text, font_size, alignment="left"):
         line_metrics.append((line, max_ascent, max_descent, line_height, line_width))
         total_height += line_height + line_spacing
 
+    # Create the actual label image
     total_height += 10
     image = Image.new("RGB", (width, total_height), "white")
     draw = ImageDraw.Draw(image)
 
     y = 10
     for line, max_ascent, max_descent, line_height, line_width in line_metrics:
-        if alignment == "center":
-            x = (width - line_width) // 2
-        elif alignment == "right":
-            x = width - line_width - 10
-        else:
-            x = 10
-
+        x = 10 if alignment == "left" else (width - line_width) // 2 if alignment == "center" else width - line_width - 10
         for part in line:
             font = ImageFont.truetype(FONT_PATH, font_size)
-            color = part["color"]
-            ascent, _ = font.getmetrics()
-            draw.text((x, y + max_ascent - ascent), part["text"], fill=color, font=font)
-            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
-            x += text_width + 5
+            draw.text((x, y + max_ascent - font.getmetrics()[0]), part["text"], fill="black", font=font)
+            x += dummy_draw.textbbox((0, 0), part["text"], font=font)[2] + 5
         y += line_height + line_spacing
 
     image_path = os.path.join(UPLOAD_FOLDER, "text_label.png")
@@ -180,40 +205,19 @@ def create_label_image(html_text, font_size, alignment="left"):
     return image_path
 
 def apply_rotation(image_path, angle):
-    if angle not in [0, 90, 180, 270]:
-        logging.warning(f"Ungültiger Drehwinkel: {angle}. Kein Rotation angewendet.")
-        return image_path
+    """
+    Applies rotation to the label image.
+    """
     with Image.open(image_path) as img:
         rotated_img = img.rotate(-angle, resample=Image.Resampling.LANCZOS, expand=True)
         rotated_path = os.path.join(UPLOAD_FOLDER, f"rotated_{os.path.basename(image_path)}")
         rotated_img.save(rotated_path)
         return rotated_path
 
-@app.route("/api/image/", methods=["POST"])
-def print_image():
-    if "image" not in request.files:
-        logging.error("Kein Bild hochgeladen.")
-        return jsonify({"error": "Kein Bild hochgeladen."}), 400
-
-    image_file = request.files["image"]
-    if image_file.filename == "":
-        logging.error("Kein Bild ausgewählt.")
-        return jsonify({"error": "Kein Bild ausgewählt."}), 400
-
-    try:
-        image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
-        image_file.save(image_path)
-        logging.debug(f"Bild hochgeladen: {image_path}")
-        resized_path = resize_image(image_path)
-        rotated_path = apply_rotation(resized_path, int(settings.get("rotate", 0)))
-        logging.debug(f"Bild skaliert und gedreht: {rotated_path}")
-        send_to_printer(rotated_path)
-        return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
-    except Exception as e:
-        logging.error(f"Fehler beim Bilddruck: {e}")
-        return jsonify({"error": str(e)}), 500
-
 def resize_image(image_path):
+    """
+    Resizes an uploaded image to fit the label width.
+    """
     max_width = 696
     with Image.open(image_path) as img:
         aspect_ratio = img.height / img.width
@@ -223,25 +227,26 @@ def resize_image(image_path):
         img.save(resized_path)
         return resized_path
 
-def send_to_printer(image_path):
-    logging.debug(f"Starte Druck für {image_path}")
+def send_to_printer(image_path, local_settings):
+    """
+    Sends the label image to the printer with the provided settings.
+    """
     try:
-        qlr = BrotherQLRaster(settings["printer_model"])
+        qlr = BrotherQLRaster(local_settings["printer_model"])
         qlr.exception_on_warning = True
         instructions = convert(
             qlr=qlr,
             images=[image_path],
-            label=settings["label_size"],
-            rotate="0",
-            threshold=settings["threshold"],
-            dither=settings["dither"],
-            compress=settings["compress"],
-            red=settings["red"],
+            label=local_settings["label_size"],
+            rotate=local_settings["rotate"],
+            threshold=float(local_settings["threshold"]),
+            dither=local_settings["dither"],
+            compress=local_settings["compress"],
+            red=local_settings["red"],
         )
-        backend = backend_factory("network")["backend_class"](settings["printer_uri"])
+        backend = backend_factory("network")["backend_class"](local_settings["printer_uri"])
         backend.write(instructions)
         backend.dispose()
-        logging.debug("Druck erfolgreich abgeschlossen")
     except Exception as e:
         logging.error(f"Fehler beim Drucken: {e}")
         raise
