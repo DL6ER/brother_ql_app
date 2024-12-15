@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("label_size").value = settings.label_size || "62";
 
             // Druckeinstellungen
+            document.getElementById("font_size").value = settings.font_size || 50;
             document.getElementById("rotate").value = settings.rotate || "0";
             document.getElementById("threshold").value = settings.threshold || "70";
             document.getElementById("dither").value = settings.dither ? "true" : "false";
@@ -61,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("label_size", document.getElementById("label_size").value);
 
         // Druckeinstellungen
+        formData.append("font_size", document.getElementById("font_size").value);
         formData.append("rotate", document.getElementById("rotate").value);
         formData.append("threshold", document.getElementById("threshold").value);
         formData.append("dither", document.getElementById("dither").value);

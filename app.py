@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template, jsonify
 from PIL import Image, ImageDraw, ImageFont
-from html.parser import HTMLParser
 from brother_ql.raster import BrotherQLRaster
 from brother_ql.conversion import convert
 from brother_ql.backends import backend_factory
@@ -9,45 +8,38 @@ import json
 
 app = Flask(__name__)
 
-# Standard-Dateipfad für Settings und Uploads
 SETTINGS_FILE = "settings.json"
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-# Standard-Einstellungen
 DEFAULT_SETTINGS = {
     "printer_uri": "tcp://192.168.1.100",
     "printer_model": "QL-800",
     "label_size": "62",
     "font_size": 50,
     "alignment": "left",
-    "rotate": "0",  # Optionen: "0", "90", "180", "270"
+    "rotate": "0",
     "threshold": 70.0,
     "dither": False,
     "compress": False,
-    "red": True
+    "red": False
 }
 
-# Einstellungen laden/speichern
 def load_settings():
-    """Lädt die Einstellungen aus einer JSON-Datei."""
     if os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, "r") as f:
             return json.load(f)
     return DEFAULT_SETTINGS.copy()
 
 def save_settings(settings):
-    """Speichert die Einstellungen in eine JSON-Datei."""
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings, f, indent=4)
 
-# Globale Einstellungen initialisieren
 settings = load_settings()
 
 class TextParser(HTMLParser):
-    """Parst HTML und speichert Text mit Formatierungen."""
     def __init__(self):
         super().__init__()
         self.parts = []
@@ -78,12 +70,10 @@ def index():
 
 @app.route("/settings", methods=["GET"])
 def get_settings():
-    """Gibt die gespeicherten Einstellungen zurück."""
     return jsonify(settings)
 
 @app.route("/update_settings", methods=["POST"])
 def update_settings():
-    """Einstellungen aktualisieren und persistent speichern."""
     global settings
     settings["printer_uri"] = request.form.get("printer_uri", settings["printer_uri"])
     settings["printer_model"] = request.form.get("printer_model", settings["printer_model"])
@@ -95,13 +85,11 @@ def update_settings():
     settings["dither"] = request.form.get("dither", str(settings["dither"])).lower() == "true"
     settings["compress"] = request.form.get("compress", str(settings["compress"])).lower() == "true"
     settings["red"] = request.form.get("red", str(settings["red"])).lower() == "true"
-
     save_settings(settings)
     return jsonify({"success": True, "message": "Einstellungen gespeichert."})
 
 @app.route("/api/text/", methods=["POST"])
 def api_text():
-    """Verarbeitet und druckt den eingegebenen Text."""
     data = request.json
     text = data.get("text", "").strip()
     alignment = data.get("settings", {}).get("alignment", settings["alignment"])
@@ -117,7 +105,6 @@ def api_text():
         return jsonify({"error": str(e)}), 500
 
 def create_label_image(html_text, alignment="left"):
-    """Erstellt ein Labelbild mit dynamischer Höhe."""
     width = 696
     parser = TextParser()
     parser.feed(html_text)
@@ -187,7 +174,6 @@ def create_label_image(html_text, alignment="left"):
 
 @app.route("/api/image/", methods=["POST"])
 def print_image():
-    """Verarbeitet und druckt hochgeladene Bilder."""
     if "image" not in request.files:
         return jsonify({"error": "Kein Bild hochgeladen."}), 400
 
@@ -205,7 +191,6 @@ def print_image():
         return jsonify({"error": str(e)}), 500
 
 def resize_image(image_path):
-    """Passt die Größe des Bildes an die Druckbreite an."""
     max_width = 696
     with Image.open(image_path) as img:
         aspect_ratio = img.height / img.width
@@ -216,7 +201,6 @@ def resize_image(image_path):
         return resized_path
 
 def send_to_printer(image_path):
-    """Sendet das Bild oder Label an den Drucker."""
     qlr = BrotherQLRaster(settings["printer_model"])
     qlr.exception_on_warning = True
     instructions = convert(
