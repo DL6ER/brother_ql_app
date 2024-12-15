@@ -10,7 +10,8 @@ import logging
 
 app = Flask(__name__)
 
-SETTINGS_FILE = "settings.json"
+SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings.json")
+
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
