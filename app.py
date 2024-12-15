@@ -117,8 +117,13 @@ def create_label_image(text, font_size, alignment):
     image = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(FONT_PATH, font_size)
-    text_width, text_height = draw.textsize(text, font=font)
+    
+    # Textgröße mit textbbox() berechnen
+    text_box = draw.textbbox((0, 0), text, font=font)
+    text_width = text_box[2] - text_box[0]
+    text_height = text_box[3] - text_box[1]
 
+    # Ausrichtung berechnen
     if alignment == "center":
         x = (width - text_width) // 2
     elif alignment == "right":
@@ -127,6 +132,7 @@ def create_label_image(text, font_size, alignment):
         x = 10
     y = (height - text_height) // 2
 
+    # Text zeichnen
     draw.text((x, y), text, fill="black", font=font)
     image_path = os.path.join(UPLOAD_FOLDER, "text_label.png")
     image.save(image_path)
