@@ -1,12 +1,12 @@
-import os
-import json
-import logging
 from flask import Flask, request, render_template, jsonify, redirect, url_for, send_from_directory
 from PIL import Image, ImageDraw, ImageFont
 from html.parser import HTMLParser
 from brother_ql.raster import BrotherQLRaster
 from brother_ql.conversion import convert
 from brother_ql.backends import backend_factory
+import os
+import json
+import logging
 
 app = Flask(__name__)
 
@@ -32,7 +32,7 @@ DEFAULT_SETTINGS = {
 logging.basicConfig(level=logging.DEBUG)
 
 def load_settings():
-    if os.path.exists(SETTINGS_FILE) and os.path.isfile(SETTINGS_FILE):
+    if os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, "r") as f:
             return json.load(f)
     return DEFAULT_SETTINGS
@@ -101,18 +101,17 @@ def api_text():
 
     text = data["text"]
     settings = load_settings()
-    received_settings = data["settings"]
     local_settings = {
-        "printer_uri": received_settings.get("printer_uri", settings["printer_uri"]),
-        "printer_model": received_settings.get("printer_model", settings["printer_model"]),
-        "label_size": received_settings.get("label_size", settings["label_size"]),
-        "font_size": float(received_settings.get("font_size", settings["font_size"])),
-        "alignment": received_settings.get("alignment", settings["alignment"]),
-        "rotate": int(received_settings.get("rotate", settings["rotate"])),
-        "threshold": float(received_settings.get("threshold", settings["threshold"])),
-        "dither": received_settings.get("dither", settings["dither"]),
-        "red": received_settings.get("red", settings["red"]),
-        "compress": received_settings.get("compress", settings["compress"]),
+        "printer_uri": data["settings"].get("printer_uri", settings["printer_uri"]),
+        "printer_model": data["settings"].get("printer_model", settings["printer_model"]),
+        "label_size": data["settings"].get("label_size", settings["label_size"]),
+        "font_size": data["settings"].get("font_size", settings["font_size"]),
+        "alignment": data["settings"].get("alignment", settings["alignment"]),
+        "rotate": data["settings"].get("rotate", settings["rotate"]),
+        "threshold": data["settings"].get("threshold", settings["threshold"]),
+        "dither": data["settings"].get("dither", settings["dither"]),
+        "red": data["settings"].get("red", settings["red"]),
+        "compress": data["settings"].get("compress", settings["compress"]),
     }
 
     try:

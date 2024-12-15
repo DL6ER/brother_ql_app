@@ -17,8 +17,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Anwendungscode kopieren
 COPY . .
 
-# Sicherstellen, dass settings.json existiert
-RUN touch settings.json
-
 # Flask-Anwendung starten
 CMD ["python", "app.py"]
