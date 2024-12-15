@@ -1,12 +1,12 @@
+import os
+import json
+import logging
 from flask import Flask, request, render_template, jsonify, redirect, url_for, send_from_directory
 from PIL import Image, ImageDraw, ImageFont
 from html.parser import HTMLParser
 from brother_ql.raster import BrotherQLRaster
 from brother_ql.conversion import convert
 from brother_ql.backends import backend_factory
-import os
-import json
-import logging
 
 app = Flask(__name__)
 
