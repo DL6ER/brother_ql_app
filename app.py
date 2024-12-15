@@ -6,6 +6,7 @@ from brother_ql.conversion import convert
 from brother_ql.backends import backend_factory
 import os
 import json
+import logging
 
 app = Flask(__name__)
 
@@ -27,6 +28,8 @@ DEFAULT_SETTINGS = {
     "compress": False,
     "red": False
 }
+
+logging.basicConfig(level=logging.DEBUG)
 
 def load_settings():
     if os.path.exists(SETTINGS_FILE):
@@ -101,9 +104,11 @@ def api_text():
 
     try:
         image_path = create_label_image(text, font_size, alignment)
+        logging.debug(f"Label-Bild erstellt: {image_path}")
         send_to_printer(image_path)
         return jsonify({"success": True, "message": "Text erfolgreich gedruckt!"})
     except Exception as e:
+        logging.error(f"Fehler beim Textdruck: {e}")
         return jsonify({"error": str(e)}), 500
 
 def create_label_image(text, font_size, alignment):
@@ -130,19 +135,24 @@ def create_label_image(text, font_size, alignment):
 @app.route("/api/image/", methods=["POST"])
 def print_image():
     if "image" not in request.files:
+        logging.error("Kein Bild hochgeladen.")
         return jsonify({"error": "Kein Bild hochgeladen."}), 400
 
     image_file = request.files["image"]
     if image_file.filename == "":
+        logging.error("Kein Bild ausgewählt.")
         return jsonify({"error": "Kein Bild ausgewählt."}), 400
 
     try:
         image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
         image_file.save(image_path)
+        logging.debug(f"Bild hochgeladen: {image_path}")
         resized_path = resize_image(image_path)
+        logging.debug(f"Bild skaliert: {resized_path}")
         send_to_printer(resized_path)
         return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
     except Exception as e:
+        logging.error(f"Fehler beim Bilddruck: {e}")
         return jsonify({"error": str(e)}), 500
 
 def resize_image(image_path):
@@ -156,21 +166,28 @@ def resize_image(image_path):
         return resized_path
 
 def send_to_printer(image_path):
-    qlr = BrotherQLRaster(settings["printer_model"])
-    qlr.exception_on_warning = True
-    instructions = convert(
-        qlr=qlr,
-        images=[image_path],
-        label=settings["label_size"],
-        rotate=settings["rotate"],
-        threshold=settings["threshold"],
-        dither=settings["dither"],
-        compress=settings["compress"],
-        red=settings["red"],
-    )
-    backend = backend_factory("network")["backend_class"](settings["printer_uri"])
-    backend.write(instructions)
-    backend.dispose()
+    logging.debug(f"Starte Druck für {image_path}")
+    try:
+        qlr = BrotherQLRaster(settings["printer_model"])
+        qlr.exception_on_warning = True
+        instructions = convert(
+            qlr=qlr,
+            images=[image_path],
+            label=settings["label_size"],
+            rotate=settings["rotate"],
+            threshold=settings["threshold"],
+            dither=settings["dither"],
+            compress=settings["compress"],
+            red=settings["red"],
+        )
+        logging.debug(f"Anweisungen für Drucker erstellt: {instructions}")
+        backend = backend_factory("network")["backend_class"](settings["printer_uri"])
+        backend.write(instructions)
+        backend.dispose()
+        logging.debug("Druck erfolgreich abgeschlossen")
+    except Exception as e:
+        logging.error(f"Fehler beim Drucken: {e}")
+        raise
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
