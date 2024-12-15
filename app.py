@@ -55,10 +55,11 @@ class TextParser(HTMLParser):
 
     def handle_data(self, data):
         color = self.current_attrs.get("color", "black")
-        font = ImageFont.truetype(FONT_PATH, settings["font_size"])
+        font_size = settings.get("font_size", 50)
+        font = ImageFont.truetype(FONT_PATH, font_size)
         bold = self.current_tag == "b"
         if bold:
-            font = ImageFont.truetype(FONT_PATH, settings["font_size"] + 5)
+            font = ImageFont.truetype(FONT_PATH, font_size + 5)
         self.parts.append({"text": data.strip(), "font": font, "color": color, "align": None})
 
     def handle_endtag(self, tag):
@@ -76,16 +77,15 @@ def get_settings():
 @app.route("/update_settings", methods=["POST"])
 def update_settings():
     global settings
+    settings["font_size"] = int(request.form.get("font_size", settings["font_size"]))
     settings["printer_uri"] = request.form.get("printer_uri", settings["printer_uri"])
     settings["printer_model"] = request.form.get("printer_model", settings["printer_model"])
     settings["label_size"] = request.form.get("label_size", settings["label_size"])
-    settings["font_size"] = int(request.form.get("font_size", settings["font_size"]))
     settings["alignment"] = request.form.get("alignment", settings["alignment"])
     settings["rotate"] = request.form.get("rotate", settings["rotate"])
     settings["threshold"] = float(request.form.get("threshold", settings["threshold"]))
-    settings["dither"] = request.form.get("dither", str(settings["dither"])).lower() == "true"
-    settings["compress"] = request.form.get("compress", str(settings["compress"])).lower() == "true"
-    settings["red"] = request.form.get("red", str(settings["red"])).lower() == "true"
+    settings["dither"] = request.form.get("dither", "false").lower() == "true"
+    settings["red"] = request.form.get("red", "true").lower() == "true"
     save_settings(settings)
     return jsonify({"success": True, "message": "Einstellungen gespeichert."})
 
@@ -94,82 +94,36 @@ def api_text():
     data = request.json
     text = data.get("text", "").strip()
     alignment = data.get("settings", {}).get("alignment", settings["alignment"])
+    font_size = int(data.get("settings", {}).get("font_size", settings["font_size"]))
 
     if not text:
         return jsonify({"error": "Kein Text angegeben."}), 400
 
     try:
-        image_path = create_label_image(text, alignment)
+        image_path = create_label_image(text, font_size, alignment)
         send_to_printer(image_path)
-        return jsonify({"success": True, "message": "Textdruckauftrag gesendet."})
+        return jsonify({"success": True, "message": "Text erfolgreich gedruckt!"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def create_label_image(html_text, alignment="left"):
+def create_label_image(text, font_size, alignment):
     width = 696
-    parser = TextParser()
-    parser.feed(html_text)
-
-    lines = []
-    current_line = []
-    for part in parser.parts:
-        if part["text"] == "<br>":
-            if current_line:
-                lines.append(current_line)
-            current_line = []
-        else:
-            current_line.append(part)
-    if current_line:
-        lines.append(current_line)
-
-    dummy_image = Image.new("RGB", (width, 10), "white")
-    dummy_draw = ImageDraw.Draw(dummy_image)
-
-    total_height = 10
-    line_spacing = 5
-    line_metrics = []
-
-    for line in lines:
-        ascent_values, descent_values = [], []
-        line_width = 0
-        for part in line:
-            font = part["font"]
-            ascent, descent = font.getmetrics()
-            ascent_values.append(ascent)
-            descent_values.append(descent)
-            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
-            line_width += text_width + 5
-        line_width -= 5
-        max_ascent = max(ascent_values, default=0)
-        max_descent = max(descent_values, default=0)
-        line_height = max_ascent + max_descent
-        line_metrics.append((line, max_ascent, max_descent, line_height, line_width))
-        total_height += line_height + line_spacing
-
-    total_height += 10
-
-    image = Image.new("RGB", (width, total_height), "white")
+    height = 200
+    image = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(FONT_PATH, font_size)
+    text_width, text_height = draw.textsize(text, font=font)
 
-    y = 10
-    for line, max_ascent, max_descent, line_height, line_width in line_metrics:
-        if alignment == "center":
-            x = (width - line_width) // 2
-        elif alignment == "right":
-            x = width - line_width - 10
-        else:
-            x = 10
+    if alignment == "center":
+        x = (width - text_width) // 2
+    elif alignment == "right":
+        x = width - text_width - 10
+    else:
+        x = 10
+    y = (height - text_height) // 2
 
-        for part in line:
-            font = part["font"]
-            color = part["color"]
-            ascent, _ = font.getmetrics()
-            draw.text((x, y + max_ascent - ascent), part["text"], fill=color, font=font)
-            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
-            x += text_width + 5
-        y += line_height + line_spacing
-
-    image_path = os.path.join(UPLOAD_FOLDER, "label.png")
+    draw.text((x, y), text, fill="black", font=font)
+    image_path = os.path.join(UPLOAD_FOLDER, "text_label.png")
     image.save(image_path)
     return image_path
 
@@ -185,8 +139,8 @@ def print_image():
     try:
         image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
         image_file.save(image_path)
-        resized_image_path = resize_image(image_path)
-        send_to_printer(resized_image_path)
+        resized_path = resize_image(image_path)
+        send_to_printer(resized_path)
         return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
