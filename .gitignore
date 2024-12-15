@@ -16,3 +16,4 @@ docker-compose.override.yml
 .idea/
 *.sublime-project
 *.sublime-workspace
+*_bak

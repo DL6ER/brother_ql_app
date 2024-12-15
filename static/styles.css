@@ -13,7 +13,6 @@ body {
     color: #e0e0e0;
 }
 
-/* Container */
 .app-container {
     max-width: 900px;
     margin: 20px auto;
@@ -36,6 +35,54 @@ body {
     font-size: 1.5rem;
     margin: 0;
     font-weight: 700;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Dropdown für Sprachauswahl */
+#language-dropdown {
+    padding: 8px 12px;
+    font-size: 1rem;
+    border: 1px solid #c5cae9;
+    border-radius: 8px;
+    background-color: white;
+    color: #4a4a4a;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#language-dropdown:hover {
+    border-color: #7986cb;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode #language-dropdown {
+    background-color: #2a2a40;
+    color: #e0e0e0;
+    border-color: #42426d;
+}
+
+.dark-mode #language-dropdown:hover {
+    border-color: #9fa8da;
+}
+
+/* Icon Buttons */
+.icon-button {
+    font-size: 1.8rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.3s;
+}
+
+.icon-button:hover {
+    transform: scale(1.2);
 }
 
 /* Karten */
@@ -97,12 +144,6 @@ textarea {
     resize: vertical;
 }
 
-.dark-mode input, .dark-mode select, .dark-mode textarea {
-    background: #2a2a40;
-    color: #ffffff;
-    border-color: #42426d;
-}
-
 /* Buttons */
 .primary-button, .secondary-button {
     background: linear-gradient(to right, #5c6bc0, #7e57c2);
@@ -131,15 +172,6 @@ textarea {
     background: linear-gradient(to right, #dce0f3, #e0dfee);
 }
 
-.dark-mode .primary-button {
-    background: linear-gradient(to right, #5c6bc0, #7e57c2);
-}
-
-.dark-mode .secondary-button {
-    background: linear-gradient(to right, #3a3f5c, #4a4f7c);
-    color: #ffffff;
-}
-
 /* Einklappbare Einstellungen */
 .collapsible-header {
     cursor: pointer;
@@ -156,25 +188,22 @@ textarea {
 
 .collapsible-content {
     overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    max-height: 0; /* Standardmäßig versteckt */
+    max-height: 0;
+    padding: 0;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
 }
 
 .collapsible-content.open {
-    max-height: 1000px; /* Große genug, um alles anzuzeigen */
+    max-height: 5000px; /* Ausreichend groß für Inhalte */
     padding: 20px 0;
-    transition: max-height 0.5s ease-in-out;
-}
-
-.dark-mode .collapsible-header {
-    color: #9fa8da;
-}
-
-.dark-mode .collapsible-header:hover {
-    color: #c5cae9;
+    transition: max-height 0.5s ease-in, padding 0.3s ease-in;
 }
 
 /* JSON Output */
+.hidden {
+    display: none;
+}
+
 .json-result {
     background: #ede7f6;
     padding: 15px;
@@ -197,20 +226,23 @@ textarea {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Icon Buttons */
-.icon-button {
-    font-size: 1.8rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: white;
-    transition: transform 0.3s;
+.image-preview.hidden {
+    display: none;
 }
 
-.icon-button:hover {
-    transform: scale(1.2);
-}
-
-.dark-mode .icon-button {
+/* Dark Mode Änderungen */
+.dark-mode input, .dark-mode select, .dark-mode textarea {
+    background: #2a2a40;
+    border-color: #42426d;
     color: #e0e0e0;
+}
+
+.dark-mode input:focus, .dark-mode select:focus, .dark-mode textarea:focus {
+    background: #42426d;
+    border-color: #7986cb;
+}
+
+/* Übergänge */
+button, input, select, textarea {
+    transition: all 0.3s ease;
 }
