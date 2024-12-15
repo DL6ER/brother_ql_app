@@ -32,7 +32,7 @@ DEFAULT_SETTINGS = {
 logging.basicConfig(level=logging.DEBUG)
 
 def load_settings():
-    if os.path.exists(SETTINGS_FILE):
+    if os.path.exists(SETTINGS_FILE) and os.path.isfile(SETTINGS_FILE):
         with open(SETTINGS_FILE, "r") as f:
             return json.load(f)
     return DEFAULT_SETTINGS
@@ -105,10 +105,10 @@ def api_text():
         "printer_uri": data["settings"].get("printer_uri", settings["printer_uri"]),
         "printer_model": data["settings"].get("printer_model", settings["printer_model"]),
         "label_size": data["settings"].get("label_size", settings["label_size"]),
-        "font_size": data["settings"].get("font_size", settings["font_size"]),
+        "font_size": float(data["settings"].get("font_size", settings["font_size"])),
         "alignment": data["settings"].get("alignment", settings["alignment"]),
-        "rotate": data["settings"].get("rotate", settings["rotate"]),
-        "threshold": data["settings"].get("threshold", settings["threshold"]),
+        "rotate": int(data["settings"].get("rotate", settings["rotate"])),
+        "threshold": float(data["settings"].get("threshold", settings["threshold"])),
         "dither": data["settings"].get("dither", settings["dither"]),
         "red": data["settings"].get("red", settings["red"]),
         "compress": data["settings"].get("compress", settings["compress"]),
