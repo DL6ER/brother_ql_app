@@ -112,16 +112,21 @@ def api_text():
         return jsonify({"error": str(e)}), 500
 
 def create_label_image(text, font_size, alignment):
-    width = 696
-    height = 200
-    image = Image.new("RGB", (width, height), "white")
+    width = 696  # Druckerbreite
+    padding = 10  # Polsterung oben und unten
+    image = Image.new("RGB", (width, 10), "white")  # Dummy-Bild zur Größenberechnung
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(FONT_PATH, font_size)
-    
-    # Textgröße mit textbbox() berechnen
+
+    # Berechne den Textbereich
     text_box = draw.textbbox((0, 0), text, font=font)
     text_width = text_box[2] - text_box[0]
     text_height = text_box[3] - text_box[1]
+
+    # Dynamische Höhe basierend auf Textgröße
+    height = text_height + (2 * padding)
+    image = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(image)
 
     # Ausrichtung berechnen
     if alignment == "center":
@@ -130,7 +135,7 @@ def create_label_image(text, font_size, alignment):
         x = width - text_width - 10
     else:
         x = 10
-    y = (height - text_height) // 2
+    y = padding
 
     # Text zeichnen
     draw.text((x, y), text, fill="black", font=font)
