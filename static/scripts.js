@@ -25,64 +25,57 @@ document.addEventListener("DOMContentLoaded", async () => {
         nl: { name: "Nederlands", emoji: "🇳🇱" }
     };
 
-    // Lade Übersetzungen aus einer JSON-Datei
+    // Improved translation loading with error handling
     async function loadLocale(locale) {
         try {
             const response = await fetch(`/locales/${locale}.json`);
-            if (!response.ok) throw new Error(`Locale ${locale} not found`);
-            const data = await response.json();
-            console.log(`Loaded translations for ${locale}:`, data); // Debugging
-            return data;
+            if (!response.ok) {
+                console.error(`Failed to load locale ${locale}`);
+                return locale === 'en' ? {} : loadLocale('en');
+            }
+            return await response.json();
         } catch (error) {
-            console.error("Error loading locale:", error);
+            console.error(`Error loading locale ${locale}:`, error);
             return {};
         }
     }
 
     // Übersetzungen auf die Seite anwenden
     function applyTranslations() {
-        const translatableElements = document.querySelectorAll("[data-translate]");
-        translatableElements.forEach((element) => {
+        document.querySelectorAll("[data-translate]").forEach((element) => {
             const key = element.getAttribute("data-translate");
-            const translation = translations[key];
-
-            if (translation) {
-                if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
-                    element.placeholder = translation; // Placeholder für Eingabefelder
-                } else if (element.tagName === "SELECT") {
-                    const options = element.querySelectorAll("option");
-                    options.forEach((option) => {
-                        const optionKey = option.getAttribute("data-translate");
-                        if (translations[optionKey]) {
-                            option.textContent = translations[optionKey];
-                        }
-                    });
+            if (translations[key]) {
+                if (element.tagName === "INPUT" && element.type === "placeholder") {
+                    element.placeholder = translations[key];
                 } else {
-                    element.textContent = translation; // Standardtexte ersetzen
+                    element.textContent = translations[key];
                 }
-            } else {
-                console.warn(`Missing translation for key: ${key}`); // Debugging
             }
         });
     }
 
-    // Sprache wechseln
+    // Enhanced language switching
     async function changeLanguage(newLanguage) {
-        console.log("Switching to language:", newLanguage); // Debugging
-        currentLanguage = newLanguage;
-        localStorage.setItem("language", newLanguage);
-        translations = await loadLocale(newLanguage);
-        applyTranslations();
+        try {
+            translations = await loadLocale(newLanguage);
+            currentLanguage = newLanguage;
+            localStorage.setItem("language", newLanguage);
+            applyTranslations();
+            updateLanguageDropdown();
+        } catch (error) {
+            console.error("Language change failed:", error);
+        }
     }
 
     // Dropdown für Sprachauswahl aktualisieren
     function updateLanguageDropdown() {
-        languageDropdown.innerHTML = "";
-        Object.entries(availableLanguages).forEach(([key, { name, emoji }]) => {
+        languageDropdown.innerHTML = '';
+        
+        Object.entries(availableLanguages).forEach(([code, { name, emoji }]) => {
             const option = document.createElement("option");
-            option.value = key;
-            option.textContent = `${emoji} ${name}`;
-            if (key === currentLanguage) option.selected = true;
+            option.value = code;
+            option.innerHTML = `${emoji} ${name}`;
+            option.selected = code === currentLanguage;
             languageDropdown.appendChild(option);
         });
     }
@@ -211,12 +204,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Initiale Sprache und Einstellungen laden
+    // Initialize language
     const browserLanguage = navigator.language.split("-")[0];
-    currentLanguage = localStorage.getItem("language") || (availableLanguages[browserLanguage] ? browserLanguage : "en");
-    translations = await loadLocale(currentLanguage);
-    applyTranslations();
+    const savedLanguage = localStorage.getItem("language");
+    currentLanguage = savedLanguage || (availableLanguages[browserLanguage] ? browserLanguage : "en");
+
+    // Initialize UI
+    await changeLanguage(currentLanguage);
     updateLanguageDropdown();
     setInitialMode();
-    loadSettings();
+    await loadSettings();
 });

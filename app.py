@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify, redirect, url_for, send_from_directory
 from PIL import Image, ImageDraw, ImageFont
 from html.parser import HTMLParser
 from brother_ql.raster import BrotherQLRaster
@@ -158,6 +158,10 @@ def print_image():
     except Exception as e:
         logging.error(f"Fehler beim Bilddruck: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/locales/<path:filename>')
+def serve_locale(filename):
+    return send_from_directory('locales', filename)
 
 def create_label_image(html_text, local_settings):
     """
