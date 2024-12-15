@@ -1,269 +1,216 @@
-/* Allgemein */
+/* Allgemeine Stile */
 body {
+    font-family: 'Roboto', sans-serif;
     margin: 0;
-    font-family: 'Arial', sans-serif;
-    background: #f9f9f9;
-    color: #333;
+    padding: 0;
+    background: linear-gradient(to bottom, #e3f2fd, #ede7f6); /* Blau-Violette Pastelltöne */
+    color: #4a4a4a;
+    transition: background 0.3s, color 0.3s;
 }
 
-h1, h2, legend {
-    font-weight: bold;
+.dark-mode {
+    background: linear-gradient(to bottom, #1c1c2d, #2a2a40);
+    color: #e0e0e0;
 }
 
-h1 {
-    font-size: 1.8rem;
-}
-
-h2 {
-    font-size: 1.4rem;
-}
-
+/* Container */
 .app-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 1rem;
-}
-
-/* Karten */
-.card {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-    width: 100%;
-    max-width: 600px;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 10px;
 }
 
 /* Header */
 .app-header {
-    background: #007BFF;
-    color: white;
-    width: 100%;
-    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.header-actions {
-    display: flex;
-    gap: 1rem;
-}
-
-.icon-button {
-    background: none;
-    border: none;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #7e57c2, #5c6bc0);
     color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.app-header h1 {
     font-size: 1.5rem;
-    cursor: pointer;
+    margin: 0;
+    font-weight: 700;
 }
 
-/* Einklappbare Inhalte */
-.collapsible-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
+/* Karten */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s, border-color 0.3s;
 }
 
-.collapsible-header span {
-    font-size: 1.2rem;
-    color: #007BFF;
-    cursor: pointer;
+.card:hover {
+    transform: scale(1.02);
+    border-color: #c5cae9;
 }
 
-.collapsible-content.hidden {
-    display: none;
+.dark-mode .card {
+    background: #2b2b3b;
+    border: 1px solid #42426d;
+    box-shadow: none;
 }
 
-/* Eingabefelder */
+/* Formulare */
+.form-group {
+    margin-bottom: 20px;
+}
+
 label {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+    font-weight: 500;
+    margin-bottom: 5px;
     display: block;
+    color: #5c6bc0;
 }
 
-input, textarea, select {
+.dark-mode label {
+    color: #9fa8da;
+}
+
+input, select, textarea {
     width: 100%;
-    max-width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 12px;
+    border: 1px solid #c5cae9;
+    border-radius: 8px;
+    background: #f5f5f5;
     font-size: 1rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    background: #fff;
     box-sizing: border-box;
+    transition: border-color 0.3s, background 0.3s;
 }
 
-input:focus, textarea:focus, select:focus {
-    border-color: #007BFF;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+input:focus, select:focus, textarea:focus {
     outline: none;
+    border-color: #5c6bc0;
+    background: #ffffff;
 }
 
 textarea {
     resize: vertical;
 }
 
-/* Formulare */
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-row {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.form-row .form-group {
-    flex: 1;
-    min-width: 150px;
+.dark-mode input, .dark-mode select, .dark-mode textarea {
+    background: #2a2a40;
+    color: #ffffff;
+    border-color: #42426d;
 }
 
 /* Buttons */
-button {
-    padding: 0.75rem 1.5rem;
+.primary-button, .secondary-button {
+    background: linear-gradient(to right, #5c6bc0, #7e57c2);
+    color: white;
     border: none;
-    border-radius: 5px;
-    font-size: 1rem;
+    padding: 10px 15px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
     transition: background 0.3s, transform 0.2s;
 }
 
-.primary-button {
-    background: #007BFF;
-    color: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
 .primary-button:hover {
-    background: #0056b3;
-    transform: translateY(-2px);
+    transform: scale(1.05);
+    background: linear-gradient(to right, #7986cb, #9575cd);
 }
 
 .secondary-button {
-    background: #6c757d;
-    color: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to right, #c5cae9, #d1c4e9);
+    color: #4a4a4a;
 }
 
 .secondary-button:hover {
-    background: #5a6268;
-    transform: translateY(-2px);
+    transform: scale(1.05);
+    background: linear-gradient(to right, #dce0f3, #e0dfee);
 }
 
-.form-actions {
-    display: flex;
-    justify-content: flex-start;
-    gap: 1rem;
+.dark-mode .primary-button {
+    background: linear-gradient(to right, #5c6bc0, #7e57c2);
 }
 
-/* Dark Mode */
-body.dark-mode {
-    background: #121212;
+.dark-mode .secondary-button {
+    background: linear-gradient(to right, #3a3f5c, #4a4f7c);
     color: #ffffff;
 }
 
-body.dark-mode .card {
-    background: #1e1e1e;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-}
-
-body.dark-mode input,
-body.dark-mode textarea,
-body.dark-mode select {
-    background: #333333;
-    border: 1px solid #555555;
-    color: #ffffff;
-}
-
-body.dark-mode input:focus,
-body.dark-mode textarea:focus,
-body.dark-mode select:focus {
-    border-color: #007BFF;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
-}
-
-body.dark-mode .primary-button {
-    background: #0056b3;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-}
-
-body.dark-mode .secondary-button {
-    background: #444444;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-}
-
-/* Responsiv */
-@media (max-width: 768px) {
-    .form-row {
-        flex-direction: column;
-    }
-
-    .app-container {
-        padding: 1rem;
-    }
-}
-
-.hidden {
-    display: none;
-}
-
-.json-result {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-family: monospace;
-    color: #333;
-    white-space: pre-wrap; /* Zeilenumbrüche im JSON sichtbar machen */
-}
-
-.json-result a {
-    color: #007bff;
-    text-decoration: underline;
-}
-
-.json-result a:hover {
-    color: #0056b3;
-    text-decoration: none;
-}
-
-
-.result-header {
+/* Einklappbare Einstellungen */
+.collapsible-header {
+    cursor: pointer;
+    font-weight: bold;
+    color: #5c6bc0;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+.collapsible-header:hover {
+    color: #7986cb;
+}
+
+.collapsible-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    max-height: 0; /* Standardmäßig versteckt */
+}
+
+.collapsible-content.open {
+    max-height: 1000px; /* Große genug, um alles anzuzeigen */
+    padding: 20px 0;
+    transition: max-height 0.5s ease-in-out;
+}
+
+.dark-mode .collapsible-header {
+    color: #9fa8da;
+}
+
+.dark-mode .collapsible-header:hover {
+    color: #c5cae9;
+}
+
+/* JSON Output */
+.json-result {
+    background: #ede7f6;
+    padding: 15px;
+    border-radius: 8px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    color: #4a4a4a;
+    margin-top: 10px;
+}
+
+.dark-mode .json-result {
+    background: #1c1c2d;
+    color: #c5cae9;
+}
+
+/* Bildvorschau */
+.image-preview img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Icon Buttons */
 .icon-button {
-    background: none;
+    font-size: 1.8rem;
+    background: transparent;
     border: none;
-    font-size: 1.2rem;
     cursor: pointer;
-    color: #007BFF;
+    color: white;
+    transition: transform 0.3s;
 }
 
 .icon-button:hover {
-    color: #0056b3;
+    transform: scale(1.2);
 }
 
-.image-preview {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.image-preview img {
-    max-width: 100%;
-    height: auto;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+.dark-mode .icon-button {
+    color: #e0e0e0;
 }

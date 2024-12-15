@@ -1,0 +1,29 @@
+{
+    "header": {
+        "title": "Brother QL Drucker",
+        "dark_mode": "Dunkler Modus"
+    },
+    "text_printing": {
+        "section_title": "Text drucken",
+        "font_size": "Schriftgröße:",
+        "alignment": "Ausrichtung:",
+        "text_placeholder": "Geben Sie Ihren Text ein...",
+        "print_button": "Drucken",
+        "generate_json": "JSON generieren"
+    },
+    "settings": {
+        "section_title": "Einstellungen",
+        "printer_uri": "Drucker URI:",
+        "printer_model": "Druckermodell:",
+        "label_size": "Label-Größe:",
+        "rotation": "Rotation:",
+        "threshold": "Schwellenwert:",
+        "dithering": "Dithering:",
+        "two_color": "Zweifarbiger Druck (Schwarz/Rot):",
+        "save_button": "Speichern"
+    },
+    "messages": {
+        "error_loading_settings": "Fehler beim Laden der Einstellungen.",
+        "settings_saved": "Einstellungen erfolgreich gespeichert!"
+    }
+}
