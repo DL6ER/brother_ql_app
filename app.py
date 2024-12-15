@@ -10,6 +10,7 @@ import logging
 
 app = Flask(__name__)
 
+# Konfiguration
 SETTINGS_FILE = "settings.json"
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -111,13 +112,11 @@ def api_text():
         logging.error(f"Fehler beim Textdruck: {e}")
         return jsonify({"error": str(e)}), 500
 
-def create_label_image(html_text, alignment="left"):
-    """Erstellt ein Labelbild mit dynamischer Höhe und gleichmäßigen Abständen oben und unten."""
+def create_label_image(html_text, font_size, alignment="left"):
     width = 696
     parser = TextParser()
     parser.feed(html_text)
 
-    # Gruppieren der Zeilen
     lines = []
     current_line = []
     for part in parser.parts:
@@ -130,11 +129,9 @@ def create_label_image(html_text, alignment="left"):
     if current_line:
         lines.append(current_line)
 
-    # Dummy-Bild für die Textgröße
     dummy_image = Image.new("RGB", (width, 10), "white")
     dummy_draw = ImageDraw.Draw(dummy_image)
 
-    # Gesamthöhe berechnen
     total_height = 10
     line_spacing = 5
     line_metrics = []
@@ -157,19 +154,16 @@ def create_label_image(html_text, alignment="left"):
         total_height += line_height + line_spacing
 
     total_height += 10
-
-    # Neues Bild mit der berechneten Höhe erstellen
     image = Image.new("RGB", (width, total_height), "white")
     draw = ImageDraw.Draw(image)
 
-    y = 10  # Startpunkt von oben
+    y = 10
     for line, max_ascent, max_descent, line_height, line_width in line_metrics:
-        # Basierend auf der Ausrichtung x-Wert berechnen
         if alignment == "center":
             x = (width - line_width) // 2
         elif alignment == "right":
             x = width - line_width - 10
-        else:  # Standard: left
+        else:
             x = 10
 
         for part in line:
@@ -177,11 +171,10 @@ def create_label_image(html_text, alignment="left"):
             color = part["color"]
             ascent, _ = font.getmetrics()
             draw.text((x, y + max_ascent - ascent), part["text"], fill=color, font=font)
-            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
             x += text_width + 5
         y += line_height + line_spacing
 
-    image_path = "label.png"
+    image_path = os.path.join(UPLOAD_FOLDER, "text_label.png")
     image.save(image_path)
     return image_path
 
