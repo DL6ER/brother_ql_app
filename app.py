@@ -209,7 +209,7 @@ def resize_image(image_path):
     with Image.open(image_path) as img:
         aspect_ratio = img.height / img.width
         new_height = int(max_width * aspect_ratio)
-        img = img.resize((max_width, new_height), Image.ANTIALIAS)
+        img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)  # Ersetzt ANTIALIAS
         resized_path = os.path.join(UPLOAD_FOLDER, "resized_" + os.path.basename(image_path))
         img.save(resized_path)
         return resized_path
