@@ -10,7 +10,6 @@ import logging
 
 app = Flask(__name__)
 
-# Konfiguration
 SETTINGS_FILE = "settings.json"
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -89,7 +88,7 @@ def update_settings():
     settings["rotate"] = request.form.get("rotate", settings["rotate"])
     settings["threshold"] = float(request.form.get("threshold", settings["threshold"]))
     settings["dither"] = request.form.get("dither", "false").lower() == "true"
-    settings["red"] = request.form.get("red", "false").lower() == "true"
+    settings["red"] = request.form.get("red", "true").lower() == "true"
     save_settings(settings)
     return jsonify({"success": True, "message": "Einstellungen gespeichert."})
 
@@ -97,21 +96,17 @@ def update_settings():
 def api_text():
     data = request.json
     text = data.get("text", "").strip()
-    api_settings = data.get("settings", {})
-    current_settings = {**settings, **api_settings}
+    font_size = int(data.get("settings", {}).get("font_size", settings["font_size"]))
+    alignment = data.get("settings", {}).get("alignment", settings["alignment"])
 
     if not text:
         return jsonify({"error": "Kein Text angegeben."}), 400
 
     try:
-        image_path = create_label_image(
-            text,
-            font_size=int(current_settings.get("font_size", settings["font_size"])),
-            alignment=current_settings.get("alignment", settings["alignment"])
-        )
-        rotated_path = apply_rotation(image_path, int(current_settings.get("rotate", 0)))
+        image_path = create_label_image(text, font_size, alignment)
+        rotated_path = apply_rotation(image_path, int(settings.get("rotate", 0)))
         logging.debug(f"Label-Bild erstellt: {rotated_path}")
-        send_to_printer(rotated_path, current_settings)
+        send_to_printer(rotated_path)
         return jsonify({"success": True, "message": "Text erfolgreich gedruckt!"})
     except Exception as e:
         logging.error(f"Fehler beim Textdruck: {e}")
@@ -186,7 +181,7 @@ def create_label_image(html_text, font_size, alignment="left"):
 
 def apply_rotation(image_path, angle):
     if angle not in [0, 90, 180, 270]:
-        logging.warning(f"Ungültiger Drehwinkel: {angle}. Keine Rotation angewendet.")
+        logging.warning(f"Ungültiger Drehwinkel: {angle}. Kein Rotation angewendet.")
         return image_path
     with Image.open(image_path) as img:
         rotated_img = img.rotate(-angle, resample=Image.Resampling.LANCZOS, expand=True)
@@ -212,7 +207,7 @@ def print_image():
         resized_path = resize_image(image_path)
         rotated_path = apply_rotation(resized_path, int(settings.get("rotate", 0)))
         logging.debug(f"Bild skaliert und gedreht: {rotated_path}")
-        send_to_printer(rotated_path, settings)
+        send_to_printer(rotated_path)
         return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
     except Exception as e:
         logging.error(f"Fehler beim Bilddruck: {e}")
@@ -228,22 +223,22 @@ def resize_image(image_path):
         img.save(resized_path)
         return resized_path
 
-def send_to_printer(image_path, current_settings):
+def send_to_printer(image_path):
     logging.debug(f"Starte Druck für {image_path}")
     try:
-        qlr = BrotherQLRaster(current_settings["printer_model"])
+        qlr = BrotherQLRaster(settings["printer_model"])
         qlr.exception_on_warning = True
         instructions = convert(
             qlr=qlr,
             images=[image_path],
-            label=current_settings["label_size"],
+            label=settings["label_size"],
             rotate="0",
-            threshold=current_settings["threshold"],
-            dither=current_settings["dither"],
-            compress=current_settings["compress"],
-            red=current_settings["red"],
+            threshold=settings["threshold"],
+            dither=settings["dither"],
+            compress=settings["compress"],
+            red=settings["red"],
         )
-        backend = backend_factory("network")["backend_class"](current_settings["printer_uri"])
+        backend = backend_factory("network")["backend_class"](settings["printer_uri"])
         backend.write(instructions)
         backend.dispose()
         logging.debug("Druck erfolgreich abgeschlossen")
