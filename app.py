@@ -113,8 +113,8 @@ def api_text():
 
 def create_label_image(text, font_size, alignment):
     width = 696  # Druckerbreite
-    padding = 10  # Polsterung oben und unten
-    image = Image.new("RGB", (width, 10), "white")  # Dummy-Bild zur Größenberechnung
+    padding = 10  # Gleichmäßige Polsterung oben und unten
+    image = Image.new("RGB", (width, 10), "white")  # Dummy-Bild für Textgröße
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(FONT_PATH, font_size)
 
@@ -132,10 +132,12 @@ def create_label_image(text, font_size, alignment):
     if alignment == "center":
         x = (width - text_width) // 2
     elif alignment == "right":
-        x = width - text_width - 10
+        x = width - text_width - padding
     else:
-        x = 10
-    y = padding
+        x = padding
+
+    # Vertikale Positionierung mit gleichem Abstand oben und unten
+    y = (height - text_height) // 2
 
     # Text zeichnen
     draw.text((x, y), text, fill="black", font=font)
