@@ -111,37 +111,77 @@ def api_text():
         logging.error(f"Fehler beim Textdruck: {e}")
         return jsonify({"error": str(e)}), 500
 
-def create_label_image(text, font_size, alignment):
-    width = 696  # Druckerbreite
-    padding = 10  # Gleichmäßige Polsterung oben und unten
-    image = Image.new("RGB", (width, 10), "white")  # Dummy-Bild für Textgröße
+def create_label_image(html_text, alignment="left"):
+    """Erstellt ein Labelbild mit dynamischer Höhe und gleichmäßigen Abständen oben und unten."""
+    width = 696
+    parser = TextParser()
+    parser.feed(html_text)
+
+    # Gruppieren der Zeilen
+    lines = []
+    current_line = []
+    for part in parser.parts:
+        if part["text"] == "<br>":
+            if current_line:
+                lines.append(current_line)
+            current_line = []
+        else:
+            current_line.append(part)
+    if current_line:
+        lines.append(current_line)
+
+    # Dummy-Bild für die Textgröße
+    dummy_image = Image.new("RGB", (width, 10), "white")
+    dummy_draw = ImageDraw.Draw(dummy_image)
+
+    # Gesamthöhe berechnen
+    total_height = 10
+    line_spacing = 5
+    line_metrics = []
+
+    for line in lines:
+        ascent_values, descent_values = [], []
+        line_width = 0
+        for part in line:
+            font = part["font"]
+            ascent, descent = font.getmetrics()
+            ascent_values.append(ascent)
+            descent_values.append(descent)
+            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
+            line_width += text_width + 5
+        line_width -= 5
+        max_ascent = max(ascent_values, default=0)
+        max_descent = max(descent_values, default=0)
+        line_height = max_ascent + max_descent
+        line_metrics.append((line, max_ascent, max_descent, line_height, line_width))
+        total_height += line_height + line_spacing
+
+    total_height += 10
+
+    # Neues Bild mit der berechneten Höhe erstellen
+    image = Image.new("RGB", (width, total_height), "white")
     draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(FONT_PATH, font_size)
 
-    # Berechne den Textbereich
-    text_box = draw.textbbox((0, 0), text, font=font)
-    text_width = text_box[2] - text_box[0]
-    text_height = text_box[3] - text_box[1]
+    y = 10  # Startpunkt von oben
+    for line, max_ascent, max_descent, line_height, line_width in line_metrics:
+        # Basierend auf der Ausrichtung x-Wert berechnen
+        if alignment == "center":
+            x = (width - line_width) // 2
+        elif alignment == "right":
+            x = width - line_width - 10
+        else:  # Standard: left
+            x = 10
 
-    # Dynamische Höhe basierend auf Textgröße
-    height = text_height + (2 * padding)
-    image = Image.new("RGB", (width, height), "white")
-    draw = ImageDraw.Draw(image)
+        for part in line:
+            font = part["font"]
+            color = part["color"]
+            ascent, _ = font.getmetrics()
+            draw.text((x, y + max_ascent - ascent), part["text"], fill=color, font=font)
+            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
+            x += text_width + 5
+        y += line_height + line_spacing
 
-    # Ausrichtung berechnen
-    if alignment == "center":
-        x = (width - text_width) // 2
-    elif alignment == "right":
-        x = width - text_width - padding
-    else:
-        x = padding
-
-    # Vertikale Positionierung mit gleichem Abstand oben und unten
-    y = (height - text_height) // 2
-
-    # Text zeichnen
-    draw.text((x, y), text, fill="black", font=font)
-    image_path = os.path.join(UPLOAD_FOLDER, "text_label.png")
+    image_path = "label.png"
     image.save(image_path)
     return image_path
 
