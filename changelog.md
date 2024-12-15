@@ -1,3 +1,9 @@
+## Release 2.1.0
+What’s New:
+• Multilanguage Support: Added support for multiple languages; if your language isn’t included or the translation is inaccurate, please submit a pull request with your translation.
+• Enhanced Web UI: Updated the web user interface for a more attractive design and made it fully responsive for mobile devices.
+
+
 ## Release 2.0.1
 What’s New:
 •	Enhanced API functionality allowing dynamic settings like printer_uri, dither, and more to be passed via POST requests for both text and image printing.
