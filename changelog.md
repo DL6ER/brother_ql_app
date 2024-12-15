@@ -1,3 +1,15 @@
+## Release 2.0.0
+What’s New:
+•	Enhanced API functionality allowing dynamic settings like printer_uri, dither and more to be passed via POST requests for both text and image printing.
+•	Implemented image support for both the API and Web-GUI, enabling users to upload, process, and print images directly.
+
+
+## Beta Release 2.0.0
+What’s New:
+•	Enhanced API functionality allowing dynamic settings like printer_uri, dither and more to be passed via POST requests for both text and image printing.
+•	Implemented image support for both the API and Web-GUI, enabling users to upload, process, and print images directly.
+
+
 ## Release 1.2.0
 What’s New:
 	•	Modern, responsive UI with collapsible settings for better usability.
