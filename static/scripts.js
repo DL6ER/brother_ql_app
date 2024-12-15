@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Text drucken
     async function printText(event) {
-        event.preventDefault(); // Verhindert das Neuladen der Seite
+        event.preventDefault();
         const textArea = document.getElementById("text");
         const text = textArea.value.replace(/\n/g, "<br>"); // Ersetzt Zeilenumbrüche durch <br>
         const fontSize = document.getElementById("font_size").value;
@@ -104,6 +104,10 @@ document.addEventListener("DOMContentLoaded", () => {
             settings: {
                 font_size: fontSize,
                 alignment: alignment,
+                rotate: document.getElementById("rotate").value,
+                threshold: document.getElementById("threshold").value,
+                dither: document.getElementById("dither").value === "true",
+                red: document.getElementById("red").value === "true",
             },
         };
 
@@ -125,24 +129,27 @@ document.addEventListener("DOMContentLoaded", () => {
     function generateJson() {
         const textArea = document.getElementById("text");
         const text = textArea.value.replace(/\n/g, "<br>"); // Zeilenumbrüche in <br> umwandeln
-        const fontSize = document.getElementById("font_size").value;
-        const alignment = document.getElementById("alignment").value;
 
         const jsonData = {
             text: text,
             settings: {
-                font_size: fontSize,
-                alignment: alignment,
+                printer_uri: document.getElementById("printer_uri").value,
+                printer_model: document.getElementById("printer_model").value,
+                label_size: document.getElementById("label_size").value,
+                font_size: document.getElementById("font_size").value,
+                alignment: document.getElementById("alignment").value,
+                rotate: document.getElementById("rotate").value,
+                threshold: document.getElementById("threshold").value,
+                dither: document.getElementById("dither").value === "true",
+                red: document.getElementById("red").value === "true",
             },
         };
 
-        // JSON als String formatieren
         const jsonString = JSON.stringify(jsonData, null, 2);
 
-        // JSON im Ergebnisbereich anzeigen
         resultContainer.innerText = jsonString;
-        resultContainer.style.whiteSpace = "pre-wrap"; // Zeilenumbrüche sichtbar machen
-        resultSection.classList.remove("hidden"); // Ergebnisbereich sichtbar machen
+        resultContainer.style.whiteSpace = "pre-wrap";
+        resultSection.classList.remove("hidden");
     }
 
     // JSON in die Zwischenablage kopieren
@@ -177,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         formData.append("image", file);
+        formData.append("rotate", document.getElementById("rotate").value);
 
         try {
             const response = await fetch("/api/image/", {
@@ -195,8 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
     settingsToggle.addEventListener("click", () => {
         const isHidden = settingsContent.classList.contains("hidden");
         settingsContent.classList.toggle("hidden");
-
-        // Text im Button aktualisieren
         settingsToggle.textContent = isHidden ? "➕" : "➖";
     });
 
