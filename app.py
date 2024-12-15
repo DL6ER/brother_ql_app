@@ -97,13 +97,14 @@ def update_settings():
 def api_text():
     data = request.json
     text = data.get("text", "").strip()
-    alignment = data.get("settings", {}).get("alignment", settings["alignment"])
     font_size = int(data.get("settings", {}).get("font_size", settings["font_size"]))
+    alignment = data.get("settings", {}).get("alignment", settings["alignment"])
 
     if not text:
         return jsonify({"error": "Kein Text angegeben."}), 400
 
     try:
+        # Label erstellen mit angegebener Schriftgröße
         image_path = create_label_image(text, font_size, alignment)
         logging.debug(f"Label-Bild erstellt: {image_path}")
         send_to_printer(image_path)
@@ -129,6 +130,7 @@ def create_label_image(html_text, font_size, alignment="left"):
     if current_line:
         lines.append(current_line)
 
+    # Dummy-Bild für die Textgröße
     dummy_image = Image.new("RGB", (width, 10), "white")
     dummy_draw = ImageDraw.Draw(dummy_image)
 
@@ -140,7 +142,7 @@ def create_label_image(html_text, font_size, alignment="left"):
         ascent_values, descent_values = [], []
         line_width = 0
         for part in line:
-            font = part["font"]
+            font = ImageFont.truetype(FONT_PATH, font_size)  # Schriftgröße anwenden
             ascent, descent = font.getmetrics()
             ascent_values.append(ascent)
             descent_values.append(descent)
@@ -167,10 +169,11 @@ def create_label_image(html_text, font_size, alignment="left"):
             x = 10
 
         for part in line:
-            font = part["font"]
+            font = ImageFont.truetype(FONT_PATH, font_size)  # Schriftgröße anwenden
             color = part["color"]
             ascent, _ = font.getmetrics()
             draw.text((x, y + max_ascent - ascent), part["text"], fill=color, font=font)
+            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
             x += text_width + 5
         y += line_height + line_spacing
 
