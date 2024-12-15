@@ -25,7 +25,6 @@ jobs:
       - name: Extract Version and Release Notes
         id: changelog
         run: |
-          # Datei prüfen
           if [ ! -f changelog.md ]; then
             echo "ERROR: changelog.md not found!" >&2
             exit 1
@@ -55,22 +54,34 @@ jobs:
           echo "$NOTES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # Überprüfen, ob der Tag existiert
-      - name: Check if Tag Already Exists
+      # Überprüfen, ob der Tag bereits im Remote existiert
+      - name: Check if Tag Exists in Remote
+        id: check_remote_tag
         run: |
-          if git rev-parse "refs/tags/${{ env.VERSION }}" >/dev/null 2>&1; then
-            echo "Tag ${{ env.VERSION }} already exists. Skipping release."
-            exit 0
+          if git ls-remote --tags origin | grep -q "refs/tags/${{ env.VERSION }}"; then
+            echo "Tag ${{ env.VERSION }} already exists in remote."
+            echo "EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "EXISTS=false" >> $GITHUB_ENV
           fi
+
+      # Schritt überspringen, wenn Tag im Remote existiert
+      - name: Skip if Tag Exists
+        if: env.EXISTS == 'true'
+        run: |
+          echo "Tag ${{ env.VERSION }} already exists in remote. Skipping release."
+          exit 0
 
       # Neuen Git-Tag erstellen und pushen
       - name: Create and Push Tag
+        if: env.EXISTS == 'false'
         run: |
           git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
           git push origin ${{ env.VERSION }}
 
       # GitHub Release erstellen
       - name: Create GitHub Release
+        if: env.EXISTS == 'false'
         uses: actions/create-release@v1
         with:
           tag_name: ${{ env.VERSION }}
