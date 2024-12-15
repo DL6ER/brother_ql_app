@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, jsonify
 from PIL import Image, ImageDraw, ImageFont
+from html.parser import HTMLParser
 from brother_ql.raster import BrotherQLRaster
 from brother_ql.conversion import convert
 from brother_ql.backends import backend_factory
