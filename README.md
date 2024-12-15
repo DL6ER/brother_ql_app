@@ -40,8 +40,9 @@ services:
     ports:
       - \"5000:5000\"
     restart: unless-stopped
-    volumes:
-      - ./settings.json:/app/settings.json
+#    volumes:
+#      - ./settings.json:/app/settings.json 
+### The presistent Volume isn’t working, and I’m not sure why. If anyone has an idea, I’d really appreciate it!
 ```
 
 Start the service:
