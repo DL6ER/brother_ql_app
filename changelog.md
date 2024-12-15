@@ -1,3 +1,7 @@
+## Release 2.1.1
+What’s New:
+• Small bugfixes 
+
 ## Release 2.1.0
 What’s New:
 • Multilanguage Support: Added support for multiple languages; if your language isn’t included or the translation is inaccurate, please submit a pull request with your translation.

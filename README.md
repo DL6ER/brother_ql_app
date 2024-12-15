@@ -177,7 +177,7 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ## 📄 Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for more information.
+See [CHANGELOG.md](changelog) for more information.
 
 ---
 
