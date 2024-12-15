@@ -10,7 +10,6 @@ import logging
 
 app = Flask(__name__)
 
-# Konfiguration
 SETTINGS_FILE = "settings.json"
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -23,7 +22,7 @@ DEFAULT_SETTINGS = {
     "label_size": "62",
     "font_size": 50,
     "alignment": "left",
-    "rotate": "0",
+    "rotate": "0",  # "0", "90", "180", "270"
     "threshold": 70.0,
     "dither": False,
     "compress": False,
@@ -104,10 +103,10 @@ def api_text():
         return jsonify({"error": "Kein Text angegeben."}), 400
 
     try:
-        # Label erstellen mit angegebener Schriftgröße
         image_path = create_label_image(text, font_size, alignment)
-        logging.debug(f"Label-Bild erstellt: {image_path}")
-        send_to_printer(image_path)
+        rotated_path = apply_rotation(image_path, int(settings.get("rotate", 0)))
+        logging.debug(f"Label-Bild erstellt: {rotated_path}")
+        send_to_printer(rotated_path)
         return jsonify({"success": True, "message": "Text erfolgreich gedruckt!"})
     except Exception as e:
         logging.error(f"Fehler beim Textdruck: {e}")
@@ -130,7 +129,6 @@ def create_label_image(html_text, font_size, alignment="left"):
     if current_line:
         lines.append(current_line)
 
-    # Dummy-Bild für die Textgröße
     dummy_image = Image.new("RGB", (width, 10), "white")
     dummy_draw = ImageDraw.Draw(dummy_image)
 
@@ -142,7 +140,7 @@ def create_label_image(html_text, font_size, alignment="left"):
         ascent_values, descent_values = [], []
         line_width = 0
         for part in line:
-            font = ImageFont.truetype(FONT_PATH, font_size)  # Schriftgröße anwenden
+            font = ImageFont.truetype(FONT_PATH, font_size)
             ascent, descent = font.getmetrics()
             ascent_values.append(ascent)
             descent_values.append(descent)
@@ -169,7 +167,7 @@ def create_label_image(html_text, font_size, alignment="left"):
             x = 10
 
         for part in line:
-            font = ImageFont.truetype(FONT_PATH, font_size)  # Schriftgröße anwenden
+            font = ImageFont.truetype(FONT_PATH, font_size)
             color = part["color"]
             ascent, _ = font.getmetrics()
             draw.text((x, y + max_ascent - ascent), part["text"], fill=color, font=font)
@@ -180,6 +178,16 @@ def create_label_image(html_text, font_size, alignment="left"):
     image_path = os.path.join(UPLOAD_FOLDER, "text_label.png")
     image.save(image_path)
     return image_path
+
+def apply_rotation(image_path, angle):
+    if angle not in [0, 90, 180, 270]:
+        logging.warning(f"Ungültiger Drehwinkel: {angle}. Kein Rotation angewendet.")
+        return image_path
+    with Image.open(image_path) as img:
+        rotated_img = img.rotate(-angle, resample=Image.Resampling.LANCZOS, expand=True)
+        rotated_path = os.path.join(UPLOAD_FOLDER, f"rotated_{os.path.basename(image_path)}")
+        rotated_img.save(rotated_path)
+        return rotated_path
 
 @app.route("/api/image/", methods=["POST"])
 def print_image():
@@ -197,8 +205,9 @@ def print_image():
         image_file.save(image_path)
         logging.debug(f"Bild hochgeladen: {image_path}")
         resized_path = resize_image(image_path)
-        logging.debug(f"Bild skaliert: {resized_path}")
-        send_to_printer(resized_path)
+        rotated_path = apply_rotation(resized_path, int(settings.get("rotate", 0)))
+        logging.debug(f"Bild skaliert und gedreht: {rotated_path}")
+        send_to_printer(rotated_path)
         return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
     except Exception as e:
         logging.error(f"Fehler beim Bilddruck: {e}")
@@ -209,7 +218,7 @@ def resize_image(image_path):
     with Image.open(image_path) as img:
         aspect_ratio = img.height / img.width
         new_height = int(max_width * aspect_ratio)
-        img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)  # Ersetzt ANTIALIAS
+        img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
         resized_path = os.path.join(UPLOAD_FOLDER, "resized_" + os.path.basename(image_path))
         img.save(resized_path)
         return resized_path
@@ -223,13 +232,12 @@ def send_to_printer(image_path):
             qlr=qlr,
             images=[image_path],
             label=settings["label_size"],
-            rotate=settings["rotate"],
+            rotate="0",  # Rotation deaktiviert, da im Bild angewendet
             threshold=settings["threshold"],
             dither=settings["dither"],
             compress=settings["compress"],
             red=settings["red"],
         )
-        logging.debug(f"Anweisungen für Drucker erstellt: {instructions}")
         backend = backend_factory("network")["backend_class"](settings["printer_uri"])
         backend.write(instructions)
         backend.dispose()
