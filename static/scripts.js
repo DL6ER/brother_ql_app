@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const copyToClipboardButton = document.getElementById("copy-to-clipboard");
     const resultSection = document.getElementById("result-section");
     const resultContainer = document.getElementById("result");
+    const imageForm = document.getElementById("image-form");
+    const imageUpload = document.getElementById("image-upload");
+    const imagePreview = document.getElementById("image-preview");
+    const previewImg = document.getElementById("preview-img");
 
     // Initial Dark Mode setzen basierend auf Systemeinstellungen oder localStorage
     function setInitialMode() {
@@ -38,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("label_size").value = settings.label_size || "62";
 
             // Druckeinstellungen
+            document.getElementById("font_size").value = settings.font_size || 50;
             document.getElementById("rotate").value = settings.rotate || "0";
             document.getElementById("threshold").value = settings.threshold || "70";
             document.getElementById("dither").value = settings.dither ? "true" : "false";
@@ -57,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("label_size", document.getElementById("label_size").value);
 
         // Druckeinstellungen
+        formData.append("font_size", document.getElementById("font_size").value);
         formData.append("rotate", document.getElementById("rotate").value);
         formData.append("threshold", document.getElementById("threshold").value);
         formData.append("dither", document.getElementById("dither").value);
@@ -87,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Text drucken
     async function printText(event) {
-        event.preventDefault(); // Verhindert das Neuladen der Seite
+        event.preventDefault();
         const textArea = document.getElementById("text");
         const text = textArea.value.replace(/\n/g, "<br>"); // Ersetzt Zeilenumbrüche durch <br>
         const fontSize = document.getElementById("font_size").value;
@@ -98,6 +104,10 @@ document.addEventListener("DOMContentLoaded", () => {
             settings: {
                 font_size: fontSize,
                 alignment: alignment,
+                rotate: document.getElementById("rotate").value,
+                threshold: document.getElementById("threshold").value,
+                dither: document.getElementById("dither").value === "true",
+                red: document.getElementById("red").value === "true",
             },
         };
 
@@ -119,24 +129,27 @@ document.addEventListener("DOMContentLoaded", () => {
     function generateJson() {
         const textArea = document.getElementById("text");
         const text = textArea.value.replace(/\n/g, "<br>"); // Zeilenumbrüche in <br> umwandeln
-        const fontSize = document.getElementById("font_size").value;
-        const alignment = document.getElementById("alignment").value;
 
         const jsonData = {
             text: text,
             settings: {
-                font_size: fontSize,
-                alignment: alignment,
+                printer_uri: document.getElementById("printer_uri").value,
+                printer_model: document.getElementById("printer_model").value,
+                label_size: document.getElementById("label_size").value,
+                font_size: document.getElementById("font_size").value,
+                alignment: document.getElementById("alignment").value,
+                rotate: document.getElementById("rotate").value,
+                threshold: document.getElementById("threshold").value,
+                dither: document.getElementById("dither").value === "true",
+                red: document.getElementById("red").value === "true",
             },
         };
 
-        // JSON als String formatieren
         const jsonString = JSON.stringify(jsonData, null, 2);
 
-        // JSON im Ergebnisbereich anzeigen
         resultContainer.innerText = jsonString;
-        resultContainer.style.whiteSpace = "pre-wrap"; // Zeilenumbrüche sichtbar machen
-        resultSection.classList.remove("hidden"); // Ergebnisbereich sichtbar machen
+        resultContainer.style.whiteSpace = "pre-wrap";
+        resultSection.classList.remove("hidden");
     }
 
     // JSON in die Zwischenablage kopieren
@@ -147,19 +160,54 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((error) => alert("Fehler beim Kopieren in die Zwischenablage."));
     }
 
+    // Bildvorschau
+    imageUpload.addEventListener("change", () => {
+        const file = imageUpload.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                imagePreview.classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Bild drucken
+    imageForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        const file = imageUpload.files[0];
+        if (!file) {
+            alert("Bitte wählen Sie ein Bild aus!");
+            return;
+        }
+
+        formData.append("image", file);
+        formData.append("rotate", document.getElementById("rotate").value);
+
+        try {
+            const response = await fetch("/api/image/", {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+            alert(result.message || "Bild wurde gedruckt!");
+        } catch (error) {
+            console.error("Fehler beim Drucken des Bildes:", error);
+            alert("Fehler beim Drucken.");
+        }
+    });
+
     // Einstellungen ein- und ausklappen
     settingsToggle.addEventListener("click", () => {
         const isHidden = settingsContent.classList.contains("hidden");
         settingsContent.classList.toggle("hidden");
-
-        // Text im Button aktualisieren
         settingsToggle.textContent = isHidden ? "➕" : "➖";
     });
 
     // Initial Dark Mode setzen
     setInitialMode();
-
-    // Dark Mode Toggle
     darkModeToggle.addEventListener("click", toggleDarkMode);
 
     // Einstellungen laden

@@ -56,6 +56,24 @@
                 <div id="result" class="json-result"></div>
             </section>
 
+            <!-- Bild hochladen und drucken -->
+            <section class="card">
+                <h2>Bild hochladen und drucken</h2>
+                <form id="image-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="image-upload">Bild auswählen:</label>
+                        <input type="file" id="image-upload" accept="image/*">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="primary-button">Bild drucken</button>
+                    </div>
+                </form>
+                <div id="image-preview" class="image-preview hidden">
+                    <h3>Vorschau:</h3>
+                    <img id="preview-img" src="#" alt="Bildvorschau">
+                </div>
+            </section>
+
             <!-- Einklappbare Einstellungen -->
             <section class="card">
                 <h2 class="collapsible-header">Einstellungen <span id="settings-toggle">➕</span></h2>
