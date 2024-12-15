@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect, url_for
 from PIL import Image, ImageDraw, ImageFont
 from html.parser import HTMLParser
 from brother_ql.raster import BrotherQLRaster
@@ -60,16 +60,39 @@ class TextParser(HTMLParser):
     def handle_endtag(self, tag):
         pass
 
+@app.route("/")
+def index():
+    """
+    Renders the main page of the Web-GUI.
+    """
+    return render_template("index.html", settings=settings)
+
 @app.route("/settings", methods=["GET"])
 def get_settings():
+    """
+    Returns current settings in JSON format.
+    """
     return jsonify(settings)
 
 @app.route("/update_settings", methods=["POST"])
 def update_settings():
+    """
+    Updates settings from the Web-GUI form and saves them.
+    """
     global settings
-    settings.update(request.json)
+    for key in DEFAULT_SETTINGS.keys():
+        if key in request.form:
+            value = request.form[key]
+            if isinstance(DEFAULT_SETTINGS[key], bool):
+                settings[key] = value.lower() == "true"
+            elif isinstance(DEFAULT_SETTINGS[key], int):
+                settings[key] = int(value)
+            elif isinstance(DEFAULT_SETTINGS[key], float):
+                settings[key] = float(value)
+            else:
+                settings[key] = value
     save_settings(settings)
-    return jsonify({"success": True, "message": "Einstellungen gespeichert."})
+    return redirect(url_for("index"))
 
 @app.route("/api/text/", methods=["POST"])
 def api_text():
