@@ -44,14 +44,6 @@ def save_settings(settings):
 
 settings = load_settings()
 
-def merge_settings(custom_settings):
-    """Zusammenführung von Standard- und benutzerdefinierten Einstellungen."""
-    merged = settings.copy()
-    for key, value in custom_settings.items():
-        if value is not None:
-            merged[key] = value
-    return merged
-
 class TextParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -106,7 +98,7 @@ def api_text():
     data = request.json
     text = data.get("text", "").strip()
     api_settings = data.get("settings", {})
-    current_settings = merge_settings(api_settings)
+    current_settings = {**settings, **api_settings}
 
     if not text:
         return jsonify({"error": "Kein Text angegeben."}), 400
@@ -114,42 +106,15 @@ def api_text():
     try:
         image_path = create_label_image(
             text,
-            font_size=int(current_settings["font_size"]),
-            alignment=current_settings["alignment"]
+            font_size=int(current_settings.get("font_size", settings["font_size"])),
+            alignment=current_settings.get("alignment", settings["alignment"])
         )
-        rotated_path = apply_rotation(image_path, int(current_settings["rotate"]))
+        rotated_path = apply_rotation(image_path, int(current_settings.get("rotate", 0)))
         logging.debug(f"Label-Bild erstellt: {rotated_path}")
         send_to_printer(rotated_path, current_settings)
         return jsonify({"success": True, "message": "Text erfolgreich gedruckt!"})
     except Exception as e:
         logging.error(f"Fehler beim Textdruck: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/image/", methods=["POST"])
-def print_image():
-    if "image" not in request.files:
-        logging.error("Kein Bild hochgeladen.")
-        return jsonify({"error": "Kein Bild hochgeladen."}), 400
-
-    image_file = request.files["image"]
-    if image_file.filename == "":
-        logging.error("Kein Bild ausgewählt.")
-        return jsonify({"error": "Kein Bild ausgewählt."}), 400
-
-    api_settings = request.form.to_dict()
-    current_settings = merge_settings(api_settings)
-
-    try:
-        image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
-        image_file.save(image_path)
-        logging.debug(f"Bild hochgeladen: {image_path}")
-        resized_path = resize_image(image_path)
-        rotated_path = apply_rotation(resized_path, int(current_settings["rotate"]))
-        logging.debug(f"Bild skaliert und gedreht: {rotated_path}")
-        send_to_printer(rotated_path, current_settings)
-        return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
-    except Exception as e:
-        logging.error(f"Fehler beim Bilddruck: {e}")
         return jsonify({"error": str(e)}), 500
 
 def create_label_image(html_text, font_size, alignment="left"):
@@ -229,6 +194,30 @@ def apply_rotation(image_path, angle):
         rotated_img.save(rotated_path)
         return rotated_path
 
+@app.route("/api/image/", methods=["POST"])
+def print_image():
+    if "image" not in request.files:
+        logging.error("Kein Bild hochgeladen.")
+        return jsonify({"error": "Kein Bild hochgeladen."}), 400
+
+    image_file = request.files["image"]
+    if image_file.filename == "":
+        logging.error("Kein Bild ausgewählt.")
+        return jsonify({"error": "Kein Bild ausgewählt."}), 400
+
+    try:
+        image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
+        image_file.save(image_path)
+        logging.debug(f"Bild hochgeladen: {image_path}")
+        resized_path = resize_image(image_path)
+        rotated_path = apply_rotation(resized_path, int(settings.get("rotate", 0)))
+        logging.debug(f"Bild skaliert und gedreht: {rotated_path}")
+        send_to_printer(rotated_path, settings)
+        return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
+    except Exception as e:
+        logging.error(f"Fehler beim Bilddruck: {e}")
+        return jsonify({"error": str(e)}), 500
+
 def resize_image(image_path):
     max_width = 696
     with Image.open(image_path) as img:
@@ -249,7 +238,7 @@ def send_to_printer(image_path, current_settings):
             images=[image_path],
             label=current_settings["label_size"],
             rotate="0",
-            threshold=float(current_settings["threshold"]),
+            threshold=current_settings["threshold"],
             dither=current_settings["dither"],
             compress=current_settings["compress"],
             red=current_settings["red"],
