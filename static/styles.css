@@ -252,3 +252,18 @@ body.dark-mode .secondary-button {
 .icon-button:hover {
     color: #0056b3;
 }
+
+.image-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.image-preview img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

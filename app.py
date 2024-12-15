@@ -9,8 +9,11 @@ import json
 
 app = Flask(__name__)
 
-# Standard-Dateipfad für Settings
+# Standard-Dateipfad für Settings und Uploads
 SETTINGS_FILE = "settings.json"
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 # Standard-Einstellungen
@@ -21,10 +24,10 @@ DEFAULT_SETTINGS = {
     "font_size": 50,
     "alignment": "left",
     "rotate": "0",  # Optionen: "0", "90", "180", "270"
-    "threshold": 70.0,  # Schwellenwert für Schwarz-Weiß-Konvertierung
-    "dither": False,  # Dithering verwenden oder nicht
-    "compress": False,  # Kompression verwenden oder nicht
-    "red": True  # Zweifarbiger Druck (Schwarz/Rot) verwenden
+    "threshold": 70.0,
+    "dither": False,
+    "compress": False,
+    "red": True
 }
 
 # Einstellungen laden/speichern
@@ -107,7 +110,6 @@ def api_text():
         return jsonify({"error": "Kein Text angegeben."}), 400
 
     try:
-        # Label erzeugen und drucken
         image_path = create_label_image(text, alignment)
         send_to_printer(image_path)
         return jsonify({"success": True, "message": "Textdruckauftrag gesendet."})
@@ -115,7 +117,7 @@ def api_text():
         return jsonify({"error": str(e)}), 500
 
 def create_label_image(html_text, alignment="left"):
-    """Erstellt ein Labelbild mit dynamischer Höhe und unterstützt Ausrichtung."""
+    """Erstellt ein Labelbild mit dynamischer Höhe."""
     width = 696
     parser = TextParser()
     parser.feed(html_text)
@@ -179,12 +181,42 @@ def create_label_image(html_text, alignment="left"):
             x += text_width + 5
         y += line_height + line_spacing
 
-    image_path = "label.png"
+    image_path = os.path.join(UPLOAD_FOLDER, "label.png")
     image.save(image_path)
     return image_path
 
+@app.route("/api/image/", methods=["POST"])
+def print_image():
+    """Verarbeitet und druckt hochgeladene Bilder."""
+    if "image" not in request.files:
+        return jsonify({"error": "Kein Bild hochgeladen."}), 400
+
+    image_file = request.files["image"]
+    if image_file.filename == "":
+        return jsonify({"error": "Kein Bild ausgewählt."}), 400
+
+    try:
+        image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
+        image_file.save(image_path)
+        resized_image_path = resize_image(image_path)
+        send_to_printer(resized_image_path)
+        return jsonify({"success": True, "message": "Bild erfolgreich gedruckt!"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def resize_image(image_path):
+    """Passt die Größe des Bildes an die Druckbreite an."""
+    max_width = 696
+    with Image.open(image_path) as img:
+        aspect_ratio = img.height / img.width
+        new_height = int(max_width * aspect_ratio)
+        img = img.resize((max_width, new_height), Image.ANTIALIAS)
+        resized_path = os.path.join(UPLOAD_FOLDER, "resized_" + os.path.basename(image_path))
+        img.save(resized_path)
+        return resized_path
+
 def send_to_printer(image_path):
-    """Sendet das Label an den Drucker."""
+    """Sendet das Bild oder Label an den Drucker."""
     qlr = BrotherQLRaster(settings["printer_model"])
     qlr.exception_on_warning = True
     instructions = convert(

@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const copyToClipboardButton = document.getElementById("copy-to-clipboard");
     const resultSection = document.getElementById("result-section");
     const resultContainer = document.getElementById("result");
+    const imageForm = document.getElementById("image-form");
+    const imageUpload = document.getElementById("image-upload");
+    const imagePreview = document.getElementById("image-preview");
+    const previewImg = document.getElementById("preview-img");
 
     // Initial Dark Mode setzen basierend auf Systemeinstellungen oder localStorage
     function setInitialMode() {
@@ -147,6 +151,44 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((error) => alert("Fehler beim Kopieren in die Zwischenablage."));
     }
 
+    // Bildvorschau
+    imageUpload.addEventListener("change", () => {
+        const file = imageUpload.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                imagePreview.classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Bild drucken
+    imageForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        const file = imageUpload.files[0];
+        if (!file) {
+            alert("Bitte wählen Sie ein Bild aus!");
+            return;
+        }
+
+        formData.append("image", file);
+
+        try {
+            const response = await fetch("/api/image/", {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+            alert(result.message || "Bild wurde gedruckt!");
+        } catch (error) {
+            console.error("Fehler beim Drucken des Bildes:", error);
+            alert("Fehler beim Drucken.");
+        }
+    });
+
     // Einstellungen ein- und ausklappen
     settingsToggle.addEventListener("click", () => {
         const isHidden = settingsContent.classList.contains("hidden");
@@ -158,8 +200,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initial Dark Mode setzen
     setInitialMode();
-
-    // Dark Mode Toggle
     darkModeToggle.addEventListener("click", toggleDarkMode);
 
     // Einstellungen laden
