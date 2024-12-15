@@ -189,6 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     generateJsonButton.addEventListener("click", generateJson);
     darkModeToggle.addEventListener("click", toggleDarkMode);
     languageDropdown.addEventListener("change", (e) => changeLanguage(e.target.value));
+    saveSettingsButton.addEventListener("click", saveSettings);
     document.getElementById("font_size").addEventListener("input", updateTextAppearance);
     document.getElementById("alignment").addEventListener("change", updateTextAppearance);
     document.getElementById("text-form").addEventListener("reset", () => {
