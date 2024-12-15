@@ -47,10 +47,10 @@
                 </form>
             </section>
 
-            <!-- JSON Ergebnis -->
+            <!-- Ergebnisbereich -->
             <section class="card hidden" id="result-section">
                 <div class="result-header">
-                    <h2>Ergebnis</h2>
+                    <h2>JSON Output:</h2>
                     <button id="copy-to-clipboard" class="icon-button" aria-label="Copy JSON">📋</button>
                 </div>
                 <div id="result" class="json-result"></div>
@@ -73,7 +73,69 @@
                     <img id="preview-img" src="#" alt="Bildvorschau">
                 </div>
             </section>
-            
+
+            <!-- Einklappbare Einstellungen -->
+            <section class="card">
+                <h2 class="collapsible-header">Einstellungen <span id="settings-toggle">➕</span></h2>
+                <div id="settings-content" class="collapsible-content hidden">
+                    <form id="settings-form">
+                        <fieldset>
+                            <legend>Druckerkonfiguration</legend>
+                            <div class="form-group">
+                                <label for="printer_uri">Drucker URI:</label>
+                                <input type="text" id="printer_uri" placeholder="tcp://192.168.1.100">
+                            </div>
+                            <div class="form-group">
+                                <label for="printer_model">Druckermodell:</label>
+                                <input type="text" id="printer_model" placeholder="QL-800">
+                            </div>
+                            <div class="form-group">
+                                <label for="label_size">Label-Größe:</label>
+                                <select id="label_size">
+                                    <option value="62">62 mm</option>
+                                    <option value="29">29 mm</option>
+                                    <option value="12">12 mm</option>
+                                </select>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Druckeinstellungen</legend>
+                            <div class="form-group">
+                                <label for="rotate">Rotation:</label>
+                                <select id="rotate">
+                                    <option value="0">0°</option>
+                                    <option value="90">90°</option>
+                                    <option value="180">180°</option>
+                                    <option value="270">270°</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="threshold">Schwellenwert:</label>
+                                <input type="number" id="threshold" min="0" max="100" step="1" value="70">
+                            </div>
+                            <div class="form-group">
+                                <label for="dither">Dithering:</label>
+                                <select id="dither">
+                                    <option value="false">Deaktiviert</option>
+                                    <option value="true">Aktiviert</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="red">Zweifarbiger Druck (Schwarz/Rot):</label>
+                                <select id="red">
+                                    <option value="true">Aktiviert</option>
+                                    <option value="false">Deaktiviert</option>
+                                </select>
+                            </div>
+                        </fieldset>
+
+                        <div class="form-actions">
+                            <button type="button" class="primary-button" id="save-settings">Speichern</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
         </main>
     </div>
 
