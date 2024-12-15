@@ -35,7 +35,7 @@ def load_settings():
     if os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, "r") as f:
             return json.load(f)
-    return DEFAULT_SETTINGS.copy()
+    return DEFAULT_SETTINGS
 
 def save_settings(settings):
     with open(SETTINGS_FILE, "w") as f:
@@ -50,12 +50,10 @@ class TextParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if tag == "br":
-            self.parts.append({"text": "<br>", "font": None})
+            self.parts.append("<br>")
 
     def handle_data(self, data):
-        font_size = settings.get("font_size", 50)
-        font = ImageFont.truetype(FONT_PATH, font_size)
-        self.parts.append({"text": data.strip(), "font": font})
+        self.parts.append(data)
 
     def handle_endtag(self, tag):
         pass
@@ -96,32 +94,39 @@ def update_settings():
 
 @app.route("/api/text/", methods=["POST"])
 def api_text():
-    """
-    Endpoint to print text labels. Accepts text and settings in the request JSON.
-    """
-    data = request.json
+    data = request.get_json()
+    if not data or "text" not in data or "settings" not in data:
+        logging.error("No text or settings provided")
+        return jsonify({"error": "No text or settings provided"}), 400
 
-    # Extract text and settings from the request
-    text = data.get("text", "").strip()
-    api_settings = data.get("settings", {})
-    local_settings = {**settings, **api_settings}  # Combine global settings with API-provided settings
-
-    if not text:
-        return jsonify({"error": "Kein Text angegeben."}), 400
+    text = data["text"]
+    settings = load_settings()
+    local_settings = {
+        "printer_uri": data["settings"].get("printer_uri", settings["printer_uri"]),
+        "printer_model": data["settings"].get("printer_model", settings["printer_model"]),
+        "label_size": data["settings"].get("label_size", settings["label_size"]),
+        "font_size": data["settings"].get("font_size", settings["font_size"]),
+        "alignment": data["settings"].get("alignment", settings["alignment"]),
+        "rotate": data["settings"].get("rotate", settings["rotate"]),
+        "threshold": data["settings"].get("threshold", settings["threshold"]),
+        "dither": data["settings"].get("dither", settings["dither"]),
+        "red": data["settings"].get("red", settings["red"]),
+        "compress": data["settings"].get("compress", settings["compress"]),
+    }
 
     try:
-        # Generate label image
+        logging.info("Received text: %s", text)
+        logging.info("Using settings: %s", local_settings)
         image_path = create_label_image(text, local_settings)
-
-        # Apply rotation if specified
-        rotated_path = apply_rotation(image_path, int(local_settings.get("rotate", 0)))
-
-        # Send to printer with updated settings
-        send_to_printer(rotated_path, local_settings)
-
-        return jsonify({"success": True, "message": "Text erfolgreich gedruckt!"})
+        logging.info("Image created at: %s", image_path)
+        if local_settings["rotate"] != "0":
+            image_path = apply_rotation(image_path, int(local_settings["rotate"]))
+            logging.info("Image rotated to: %s", image_path)
+        send_to_printer(image_path, local_settings)
+        logging.info("Text printed successfully")
+        return jsonify({"success": True})
     except Exception as e:
-        logging.error(f"Fehler beim Textdruck: {e}")
+        logging.error(f"Error printing text: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/image/", methods=["POST"])
@@ -164,30 +169,24 @@ def serve_locale(filename):
     return send_from_directory('locales', filename)
 
 def create_label_image(html_text, local_settings):
-    """
-    Creates a label image from the provided HTML-like text and settings.
-    """
     width = 696  # Fixed label width
     font_size = int(local_settings.get("font_size", 50))
     alignment = local_settings.get("alignment", "left")
 
-    # Parse the HTML-like text into parts
     parser = TextParser()
     parser.feed(html_text)
 
     lines = []
     current_line = []
     for part in parser.parts:
-        if part["text"] == "<br>":
-            if current_line:
-                lines.append(current_line)
+        if part == "<br>":
+            lines.append("".join(current_line))
             current_line = []
         else:
             current_line.append(part)
     if current_line:
-        lines.append(current_line)
+        lines.append("".join(current_line))
 
-    # Prepare to calculate dimensions
     dummy_image = Image.new("RGB", (width, 10), "white")
     dummy_draw = ImageDraw.Draw(dummy_image)
 
@@ -195,36 +194,28 @@ def create_label_image(html_text, local_settings):
     line_spacing = 5
     line_metrics = []
 
-    # Measure each line's height and width
     for line in lines:
-        ascent_values, descent_values = [], []
-        line_width = 0
-        for part in line:
-            font = ImageFont.truetype(FONT_PATH, font_size)
-            ascent, descent = font.getmetrics()
-            ascent_values.append(ascent)
-            descent_values.append(descent)
-            text_width = dummy_draw.textbbox((0, 0), part["text"], font=font)[2]
-            line_width += text_width + 5
-        line_width -= 5
-        max_ascent = max(ascent_values, default=0)
-        max_descent = max(descent_values, default=0)
-        line_height = max_ascent + max_descent
-        line_metrics.append((line, max_ascent, max_descent, line_height, line_width))
+        font = ImageFont.truetype(FONT_PATH, font_size)
+        bbox = dummy_draw.textbbox((0, 0), line, font=font)
+        line_width = bbox[2] - bbox[0]
+        line_height = bbox[3] - bbox[1]
+        max_ascent, max_descent = font.getmetrics()
         total_height += line_height + line_spacing
+        line_metrics.append((line, max_ascent, max_descent, line_height, line_width))
 
-    # Create the actual label image
     total_height += 10
     image = Image.new("RGB", (width, total_height), "white")
     draw = ImageDraw.Draw(image)
 
     y = 10
-    for line, max_ascent, max_descent, line_height, line_width in line_metrics:
-        x = 10 if alignment == "left" else (width - line_width) // 2 if alignment == "center" else width - line_width - 10
-        for part in line:
-            font = ImageFont.truetype(FONT_PATH, font_size)
-            draw.text((x, y + max_ascent - font.getmetrics()[0]), part["text"], fill="black", font=font)
-            x += dummy_draw.textbbox((0, 0), part["text"], font=font)[2] + 5
+    for line_text, max_ascent, max_descent, line_height, line_width in line_metrics:
+        if alignment == "center":
+            x = (width - line_width) // 2
+        elif alignment == "right":
+            x = width - line_width - 10
+        else:
+            x = 10
+        draw.text((x, y), line_text, font=font, fill="black")
         y += line_height + line_spacing
 
     image_path = os.path.join(UPLOAD_FOLDER, "text_label.png")

@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const imagePreview = document.getElementById("image-preview");
     const previewImg = document.getElementById("preview-img");
     const textArea = document.getElementById("text");
+    const textForm = document.getElementById("text-form");
 
     let translations = {};
     let currentLanguage = "en";
@@ -201,6 +202,50 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
             imagePreview.classList.add("hidden");
             previewImg.src = "";
+        }
+    });
+
+    textForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        console.log("Form submitted");
+
+        const text = textArea.value.trim();
+        if (!text) {
+            alert(translations.messages?.error_no_text || "Please enter text.");
+            return;
+        }
+
+        const data = {
+            text: text,
+            settings: {
+                printer_uri: document.getElementById("printer_uri").value,
+                printer_model: document.getElementById("printer_model").value,
+                label_size: document.getElementById("label_size").value,
+                font_size: parseFloat(document.getElementById("font_size").value),
+                alignment: document.getElementById("alignment").value,
+                rotate: parseInt(document.getElementById("rotate").value, 10),
+                threshold: parseFloat(document.getElementById("threshold").value),
+                dither: document.getElementById("dither").value === "true",
+                red: document.getElementById("red").value === "true",
+                compress: document.getElementById("compress").value === "true"
+            }
+        };
+
+        try {
+            const response = await fetch("/api/text/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error(`Print error: ${response.status}`);
+            const result = await response.json();
+            console.log("Print result:", result);
+            alert(translations.messages?.settings_saved || "Text printed successfully.");
+        } catch (error) {
+            console.error("Print error:", error);
+            alert(translations.messages?.error_saving_settings || "Failed to print text.");
         }
     });
 
