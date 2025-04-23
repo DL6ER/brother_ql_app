@@ -85,7 +85,6 @@ services:
       - "5000:5000"
     volumes:
       - ./data:/app/data
-      - ./src/config:/app/src/config
       - ./uploads:/app/uploads
     restart: unless-stopped
 ```
@@ -105,7 +104,6 @@ docker run -d \
   -p 5000:5000 \
   --name brother_ql_app \
   -v ./data:/app/data \
-  -v ./src/config:/app/src/config \
   -v ./uploads:/app/uploads \
   dodoooh/brother_ql_app:latest
 ```
