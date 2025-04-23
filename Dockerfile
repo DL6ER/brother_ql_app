@@ -1,21 +1,54 @@
-# Basis-Image mit Python 3.10
-FROM python:3.10-slim
+FROM python:3.9-slim
 
-# Arbeitsverzeichnis setzen
+# Set working directory
 WORKDIR /app
 
-# Systemabhängigkeiten installieren (für Pillow und Fonts)
-RUN apt-get update && apt-get install -y \
-    libfreetype6 libjpeg62-turbo zlib1g-dev \
-    fonts-dejavu-core && \
-    rm -rf /var/lib/apt/lists/*
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
-# Anforderungen kopieren und Python-Abhängigkeiten installieren
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    fonts-dejavu \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements file
 COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Anwendungscode kopieren
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/src/config
+
+# Create a non-root user and group
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
+# Create necessary directories (including /app/data for volume mount point)
+RUN mkdir -p /app/uploads /app/data /app/src/config
+
+# Copy application code
 COPY . .
 
-# Flask-Anwendung starten
-CMD ["python", "app.py"]
+# Set permissions and ownership
+# Give execute permissions to entrypoint, ensure appuser owns necessary dirs
+COPY docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh && \
+    chown -R appuser:appgroup /app && \
+    # Ensure the volume mount points are owned by appuser
+    chown appuser:appgroup /app/data && \
+    chown appuser:appgroup /app/uploads
+
+# Switch to the non-root user
+USER appuser
+
+# Expose port
+EXPOSE 5000
+
+# Set the entrypoint (will run as appuser)
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
