@@ -3,6 +3,7 @@ Printer service for managing Brother QL printer operations.
 """
 
 import os
+import sys
 import uuid
 import structlog
 import threading
@@ -13,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import qrcode
 from brother_ql.raster import BrotherQLRaster
 from brother_ql.conversion import convert
-from brother_ql.backends import backend_factory
+from brother_ql.backends import backend_factory, guess_backend
 
 # Import pysnmp for SNMP-based printer communication
 try:
@@ -94,7 +95,7 @@ class PrinterService:
         """
         try:
             # Create a test connection to the printer
-            backend = backend_factory("network")["backend_class"](printer_uri)
+            backend = backend_factory(guess_backend(printer_uri))["backend_class"](printer_uri)
             
             # Try to get printer status (implementation depends on printer capabilities)
             # For now, we just check if we can establish a connection
@@ -425,7 +426,7 @@ class PrinterService:
             )
             
             # Send to printer
-            backend = backend_factory("network")["backend_class"](printer_uri)
+            backend = backend_factory(guess_backend(printer_uri))["backend_class"](printer_uri)
             backend.write(instructions)
             backend.dispose()
             
@@ -481,6 +482,14 @@ class PrinterService:
                 return {
                     "success": False,
                     "message": "Printer model is required but not provided and not found in settings"
+                }
+
+            # Disable keep alive if backend is not 'network'
+            if guess_backend(printer_uri) != "network":
+                logger.info("Keep alive disabled: backend is not 'network'", printer_uri=printer_uri, backend=guess_backend(printer_uri))
+                return {
+                    "success": False,
+                    "message": f"Keep alive is not useful for non-network backends"
                 }
             
             # Stop any existing keep alive thread
@@ -1008,6 +1017,11 @@ class PrinterService:
             interval: Time interval between pings in seconds.
             stop_event: Event to signal the thread to stop.
         """
+        backend_type = guess_backend(printer_uri)
+        if backend_type != "network":
+            logger.info("Keep alive worker exiting: backend is not 'network'", printer_uri=printer_uri, backend=backend_type)
+            return
+        
         logger.info("Keep alive worker started", 
                    printer_uri=printer_uri, 
                    printer_model=printer_model,
@@ -1053,7 +1067,7 @@ class PrinterService:
                         # Create a connection to the printer using the original URI
                         # This is important for Docker environments where host.docker.internal
                         # might be used to access the host network
-                        backend = backend_factory("network")["backend_class"](printer_uri)
+                        backend = backend_factory(guess_backend(printer_uri))["backend_class"](printer_uri)
                         
                         # Just establishing and closing a connection might be enough
                         logger.debug("Connection established as keep-alive ping", printer_uri=printer_uri)
