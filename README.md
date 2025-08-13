@@ -140,6 +140,16 @@ Open your browser and navigate to [http://localhost:5000](http://localhost:5000)
 
 3. Access the application at [http://localhost:5000](http://localhost:5000)
 
+## Configuration
+
+The application settings can be configured in the `data/settings.json` file. This file contains various options for printer settings, including:
+
+- `printer_uri`: The URI of the printer to use (e.g., `tcp://192.168.1.100` when over network, or `file:///dev/usb/lp0` when using USB)
+- `printer_model`: The model of the printer (e.g., `QL-800`)
+- `label_size`: The size of the label to print (e.g., `62`)
+- `keep_alive_enabled`: Whether to keep the printer connection alive (only needed for network printers)
+- `keep_alive_interval`: The interval for keep-alive messages (in seconds)
+
 ## 📔 API Documentation
 
 The API is fully documented using OpenAPI/Swagger. You can access the interactive documentation at [http://localhost:5000/api/v1/ui/](http://localhost:5000/api/v1/ui/) when the application is running.
