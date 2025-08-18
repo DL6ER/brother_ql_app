@@ -3,7 +3,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/dodoooh/brother_ql_app)](https://hub.docker.com/r/dodoooh/brother_ql_app)
 [![GitHub Release](https://img.shields.io/github/v/release/dodoooh/brother_ql_app)](https://github.com/dodoooh/brother_ql_app/releases)
 [![GitHub Issues](https://img.shields.io/github/issues/dodoooh/brother_ql_app)](https://github.com/dodoooh/brother_ql_app/issues)
-[![Version](https://img.shields.io/badge/version-3.0.0-blue)](https://github.com/dodoooh/brother_ql_app/blob/main/changelog.md)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue)](https://github.com/dodoooh/brother_ql_app/blob/main/changelog.md)
 
 A modern web application to control Brother QL printers, enabling customizable text, image, and QR code printing with ease.
 
@@ -364,6 +364,12 @@ This project is licensed under the [Creative Commons Attribution-NonCommercial-S
 ## 🤝 Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request.
+
+## 👏 Acknowledgments
+
+Special thanks to our contributors:
+
+- **DL6ER** - For adding support for additional printer models, label types, and adding USB printer support
 
 ## 📄 Changelog
 

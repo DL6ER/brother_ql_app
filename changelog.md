@@ -5,6 +5,19 @@ All notable changes to the Brother QL Printer App will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-08-18
+
+### Added
+- Support for additional printer models: QL-1100, QL-1100NWB, QL-1115NWB (thanks to DL6ER)
+- Support for more label types and sizes including 12+17, 18, 62red, 103, 104, 54x29, 60x86, 103x164, pt12, pt18, pt24, pt36 (thanks to DL6ER)
+- Improved UI with dropdown selection for printer models and label types (thanks to DL6ER)
+- Updated to brother-ql-inventree 1.3 library for enhanced printer support (thanks to DL6ER)
+- Added USB printer support with automatic backend detection (thanks to DL6ER)
+- Added documentation for USB printer configuration (thanks to DL6ER)
+
+### Changed
+- Fixed port mapping in docker-compose.yml from 5055:5000 to 5000:5000 (thanks to DL6ER)
+
 ## [3.0.0] - 2025-04-23
 
 ### Breaking Changes
