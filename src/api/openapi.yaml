@@ -372,7 +372,7 @@ components:
           description: Model of the Brother QL printer (e.g., QL-800, QL-810W, QL-820NWB)
           example: "QL-800"
           default: "QL-800"
-          enum: ["QL-500", "QL-550", "QL-560", "QL-570", "QL-580N", "QL-650TD", "QL-700", "QL-710W", "QL-720NW", "QL-800", "QL-810W", "QL-820NWB", "QL-1050", "QL-1060N"]
+          enum: ["QL-500", "QL-550", "QL-560", "QL-570", "QL-580N", "QL-650TD", "QL-700", "QL-710W", "QL-720NW", "QL-800", "QL-810W", "QL-820NWB", "QL-1050", "QL-1060N", "QL-1100", "QL-1100NWB", "QL-1115NWB"]
       required:
         - printer_uri
         - printer_model
@@ -580,13 +580,13 @@ components:
           description: Model of the Brother QL printer
           example: "QL-800"
           default: "QL-800"
-          enum: ["QL-500", "QL-550", "QL-560", "QL-570", "QL-580N", "QL-650TD", "QL-700", "QL-710W", "QL-720NW", "QL-800", "QL-810W", "QL-820NWB", "QL-1050", "QL-1060N"]
+          enum: ["QL-500", "QL-550", "QL-560", "QL-570", "QL-580N", "QL-650TD", "QL-700", "QL-710W", "QL-720NW", "QL-800", "QL-810W", "QL-820NWB", "QL-1050", "QL-1060N", "QL-1100", "QL-1100NWB", "QL-1115NWB"]
         label_size:
           type: string
           description: Size of the label
           example: "62"
           default: "62"
-          enum: ["12", "29", "38", "50", "54", "62", "102", "17x54", "17x87", "23x23", "29x42", "29x90", "39x90", "39x48", "52x29", "62x29", "62x100", "102x51", "102x152", "d12", "d24", "d58"]
+          enum: ["12", "12+17", "18", "29", "38", "50", "54", "62", "62red", "102", "103", "104", "17x54", "17x87", "23x23", "29x42", "29x90", "39x90", "39x48", "52x29", "54x29", "60x86", "62x29", "62x100", "102x51", "102x152", "103x164", "d12", "d24", "d58", "pt12", "pt18", "pt24", "pt36"]
         rotate:
           type: integer
           description: Rotation angle in degrees
@@ -634,13 +634,13 @@ components:
           description: Default printer model
           example: "QL-800"
           default: "QL-800"
-          enum: ["QL-500", "QL-550", "QL-560", "QL-570", "QL-580N", "QL-650TD", "QL-700", "QL-710W", "QL-720NW", "QL-800", "QL-810W", "QL-820NWB", "QL-1050", "QL-1060N"]
+          enum: ["QL-500", "QL-550", "QL-560", "QL-570", "QL-580N", "QL-650TD", "QL-700", "QL-710W", "QL-720NW", "QL-800", "QL-810W", "QL-820NWB", "QL-1050", "QL-1060N", "QL-1100", "QL-1100NWB", "QL-1115NWB"]
         label_size:
           type: string
           description: Default label size
           example: "62"
           default: "62"
-          enum: ["12", "29", "38", "50", "54", "62", "102", "17x54", "17x87", "23x23", "29x42", "29x90", "39x90", "39x48", "52x29", "62x29", "62x100", "102x51", "102x152", "d12", "d24", "d58"]
+          enum: ["12", "12+17", "18", "29", "38", "50", "54", "62", "62red", "102", "103", "104", "17x54", "17x87", "23x23", "29x42", "29x90", "39x90", "39x48", "52x29", "54x29", "60x86", "62x29", "62x100", "102x51", "102x152", "103x164", "d12", "d24", "d58", "pt12", "pt18", "pt24", "pt36"]
         font_size:
           type: integer
           description: Default font size
