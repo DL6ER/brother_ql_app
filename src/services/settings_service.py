@@ -8,6 +8,7 @@ import json
 import structlog
 import copy  # For deepcopy
 from typing import Dict, Any, Optional
+from brother_ql.backends import guess_backend
 
 # Attempt to import default settings, handle potential import errors during startup phases
 try:
@@ -119,12 +120,16 @@ class SettingsService:
              raise ValueError(f"Invalid threshold value: {settings_to_validate['threshold']}. Must be between 0 and 100.")
 
         if settings_to_validate.get("keep_alive_enabled"):
-             interval = settings_to_validate.get("keep_alive_interval")
-             if interval is None:
-                 raise ValueError("keep_alive_interval is required when keep_alive_enabled is true.")
-             # Type check already done, now value check
-             if interval < 10:
-                 raise ValueError(f"keep_alive_interval must be at least 10 seconds, got {interval}")
+            interval = settings_to_validate.get("keep_alive_interval")
+            if interval is None:
+                raise ValueError("keep_alive_interval is required when keep_alive_enabled is true.")
+            # Type check already done, now value check
+            if interval < 10:
+                raise ValueError(f"keep_alive_interval must be at least 10 seconds, got {interval}")
+
+            # Keep-alive for non-network backends is not useful
+            if guess_backend(settings_to_validate["printer_uri"]) != "network":
+                raise ValueError("Keep alive is not useful for non-network backends")
 
         # Validate printers list structure
         if "printers" in settings_to_validate: # Type check confirmed it's a list
